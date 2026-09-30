@@ -10,6 +10,8 @@ install: install-cert-manager
 	@echo "-----------------------------------"
 	kubectl create namespace observability --dry-run=client -o yaml | kubectl apply -f -
 	kubectl apply -f https://github.com/jaegertracing/jaeger-operator/releases/download/$(JAEGER_VERSION)/jaeger-operator.yaml -n observability
+	# gcr.io/kubebuilder/kube-rbac-proxy was removed from gcr.io; use the upstream image instead
+	kubectl set image deployment/jaeger-operator -n observability kube-rbac-proxy=quay.io/brancz/kube-rbac-proxy:v0.13.0
 	kubectl wait --for=condition=available deployment/jaeger-operator -n observability --timeout=300s
 	kubectl apply -f config/jaeger.yaml -n "$(TOOLKIT_NAMESPACE)"
 
@@ -56,7 +58,7 @@ install-cert-manager:
 	@echo "Create Namespace and install CertManager"
 	@echo "-----------------------------------"
 	kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.11.0/cert-manager.yaml
-	kubectl wait --for=condition=Available deployment/cert-manager-webhook -n cert-manager --timeout=60s
+	kubectl wait --for=condition=Available deployment --all -n cert-manager --timeout=300s
 
 .PHONY: port-forward-jaeger
 port-forward-jaeger:
