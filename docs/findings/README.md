@@ -12,7 +12,7 @@ Sources the findings were checked against: the llm-wiki page *Platform Engineeri
 | [F004](F004-ingress-nginx-kind-nodeselector.md) | ingress-nginx's kind manifest no longer pins the controller to the `ingress-ready` node | 2 (and every chapter reusing its cluster) | medium | fixed | 27da304 |
 | [F005](F005-services-crashloop-until-infra-ready.md) | Services crash-loop until Kafka/PostgreSQL/Redis are reachable | 2, 5, 6 | medium | fixed | 45216f3 |
 | [F006](F006-frontend-exits-on-kafka-read-error.md) | Frontend exits on any Kafka read error, including a transient `Not Coordinator For Group` | 2, 5, 6 | medium | fixed in code; image not published | 3256cfc |
-| [F007](F007-kafka-bootstrap-timeout-on-kind.md) | Kafka bootstrap Service timed out for ~5 minutes after Kafka was `Ready` (first run only) | 2 | low | documented (cause not identified) | — |
+| [F007](F007-kafka-bootstrap-timeout-on-kind.md) | Kafka bootstrap Service timed out for minutes after Kafka was `Ready` (kindnet NetworkPolicy suspected) | 2, 4 | medium | documented (workaround; cause not proven) | — |
 | [F008](F008-strimzi-startup-time-on-kind.md) | Strimzi Kafka takes 1.5-5 minutes to become Ready on kind | 2, 5, 6 | info | documented | 27da304 |
 | [F009](F009-c4p-needs-postgres-superuser.md) | c4p-service needs user and database `postgres`, so it uses CloudNativePG's superuser Secret | 2, 5, 6 | medium | fixed | 27da304 |
 | [F010](F010-helm-dependency-build-needs-repo.md) | `helm dependency build` fails for the Valkey dependency unless its repo is added | 2 | low | documented | 7d71eb2 |
@@ -37,3 +37,5 @@ Sources the findings were checked against: the llm-wiki page *Platform Engineeri
 | [F029](F029-page-messagebroker-and-keyvalue.md) | v2 edition page: MessageBroker unwritten; keyvalue image | 5 | low | documented | 7d71eb2 |
 | [F030](F030-provider-helm-namespaced-providerconfig.md) | provider-helm v1.4.0 namespaced ProviderConfig still requires `secretRef.namespace` | 6 | info | documented | b2ee1fc |
 | [F031](F031-tool-version-drift.md) | Tool versions drifted in chapters not updated here | 4, 7, 8, 9 | info | documented | — |
+| [F032](F032-argocd-client-side-apply-too-long.md) | Argo CD install fails with client-side apply (CRD annotation too long) | 4 | medium | fixed | fa1df29 |
+| [F033](F033-argocd-staging-bitnami-values.md) | Chapter-4 staging config used Bitnami value paths and a stale manifest dump | 4 | high | fixed (umbrella via Argo CD blocked on public GHCR) | fa1df29 |

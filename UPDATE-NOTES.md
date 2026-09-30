@@ -18,7 +18,8 @@ Why: Bitnami stopped publishing versioned images to `docker.io/bitnami` in Augus
 - 16:44 chart v1.1.0 with `wait-for-dependencies` init containers ([F005](docs/findings/F005-services-crashloop-until-infra-ready.md)) installed from the packaged `.tgz` on fresh cluster `pek-m1`: 0 restarts, e2e PASS.
 - 16:47 chart pushed to `oci://ghcr.io/allensanborn/conference-app:v1.1.0` (digest `sha256:a7e7b8e3e07fd9459bc56cc711887945ff2a2ac0d70acf0b2ccdcc39100b4246`), linked to this repo; still **private** ([F002](docs/findings/F002-published-chart-embeds-bitnami.md)). READMEs repointed.
 - 16:50 frontend-go Kafka read retry ([F006](docs/findings/F006-frontend-exits-on-kafka-read-error.md)): unit test passes; local ko build loaded into kind survived a broker restart with 0 restarts (original image: 3). Not published.
-- 16:58 findings log `docs/findings/` created and backfilled (F001-F031).
+- 16:53 findings log `docs/findings/` created and backfilled (F001-F031).
+- 17:05 chapter 4: Argo CD v3.5.3 (needs `--server-side`, [F032](docs/findings/F032-argocd-client-side-apply-too-long.md)); staging umbrella on GHCR v1.1.0 installed with Helm and switched to debug values: PASS; Argo CD sync of `staging-kube` from this branch: Synced/Healthy, e2e PASS after F007 recurred ([F033](docs/findings/F033-argocd-staging-bitnami-values.md)). Argo CD sync of the umbrella chart is blocked until the GHCR package is public.
 
 ## Chapter 2: conference-app Helm chart
 

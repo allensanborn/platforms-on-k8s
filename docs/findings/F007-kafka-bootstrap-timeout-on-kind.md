@@ -1,8 +1,8 @@
-# F007: Kafka bootstrap Service timed out for ~5 minutes after Kafka was `Ready` (first run only)
+# F007: Kafka bootstrap Service timed out for minutes after Kafka was `Ready` (kindnet NetworkPolicy suspected)
 
-- **Chapter:** 2
-- **Severity:** low
-- **Status:** documented (cause not identified)
+- **Chapter:** 2, 4
+- **Severity:** medium
+- **Status:** documented (workaround; cause not proven)
 - **Fix commit:** —
 - **Found:** 2026-09-30, branch `crossplane-v2-and-bitnami-replacements`
 
@@ -12,15 +12,20 @@
 
 ## Root cause
 
-Unknown. Strimzi's NetworkPolicy allows 9092 from anywhere; after deleting it (Strimzi re-created it two minutes later) connections worked and kept working with the policy back. kindnet's NetworkPolicy enforcement (kindnetd v20251212) is the suspect. Did not recur on 4 later clusters.
+Not proven. Strimzi's NetworkPolicy allows 9092 from anywhere, so a correct implementation would never block it. The evidence points at kindnet's NetworkPolicy enforcement giving a wrong verdict for the broker pod for several minutes after it starts, possibly from a stale informer cache (its watches were dropping on a busy 4-node kind cluster). It happened on 2 of 6 clusters.
 
 ## Evidence
 
-Session log 2026-09-30 15:40-15:48, cluster `pek-ch2`.
+Reproduced a second time on 2026-09-30 (~17:05, cluster `pek-m1`, Kafka created by Argo CD from `chapter-4/argo-cd/staging-kube`): c4p logged `An error occured while writing the message to Kafka: dial tcp 10.96.149.183:9092: i/o timeout` and returned HTTP 500.
+- `nc -zv -w 4 10.244.2.21 9092` (broker pod IP) timed out from pods on every node, including a pod labelled `strimzi.io/name=conference-entity-operator`, which the policy explicitly allows. Port 9091 timed out too.
+- The broker node itself (`docker exec pek-m1-worker3 bash -c '</dev/tcp/10.244.2.21/9092'`) and the broker pod itself could connect. Pods without a NetworkPolicy on the same node were reachable.
+- kindnet (`kindnetd:v20251212-v0.29.0-alpha-105-g20ccfc88`) enforces NetworkPolicy by adding selected pod IPs to the `podips-v4` set in table `inet kindnet-network-policies` and sending their packets to nfqueue 101 for a userspace verdict. Its log on the broker's node showed `watch ended with error … http2: client connection lost` for NetworkPolicy, Namespace and Node informers.
+- After deleting both Strimzi NetworkPolicies (and upgrading the operator with `generateNetworkPolicy=false`), the broker IP left the set, and ~2 minutes later connections from all three workers succeeded. The e2e flow then passed.
+- First occurrence: 2026-09-30 15:40-15:48, cluster `pek-ch2`.
 
 ## Fix or workaround
 
-None needed so far; the init containers ([F005](F005-services-crashloop-until-infra-ready.md)) would now wait instead of crash. If it recurs: `kubectl delete networkpolicy <cluster>-network-policy-kafka`, or install Strimzi with `--set generateNetworkPolicy=false` on kind.
+Workaround, documented in the chapter-2 README troubleshooting note: on kind, install Strimzi with `--set generateNetworkPolicy=false`, or delete the `<cluster>-network-policy-kafka` policy and wait ~2 minutes. With the chart's init containers ([F005](F005-services-crashloop-until-infra-ready.md)) the services wait instead of crash-looping, but a request can still fail (HTTP 500) while the path is blocked.
 
 ## How to verify
 

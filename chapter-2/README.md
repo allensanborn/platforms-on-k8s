@@ -182,6 +182,9 @@ kubectl wait --for=condition=Ready cluster.postgresql.cnpg.io/conference-postgre
 kubectl wait --for=condition=Ready kafka/conference --timeout=600s
 ```
 
+> [!Note]
+> **Troubleshooting on kind:** if a request fails with HTTP 500 and the service logs show `dial tcp …:9092: i/o timeout` although `kubectl get kafka` says `Ready`, kind's network-policy enforcement is blocking the broker ([F007](../docs/findings/F007-kafka-bootstrap-timeout-on-kind.md)). Run `kubectl delete networkpolicy conference-network-policy-kafka` and wait about 2 minutes, or install Strimzi with `--set generateNetworkPolicy=false` on local clusters.
+
 Now you can point your browser to [http://localhost](http://localhost) to see the application. 
 
 ![conference app](imgs/conference-app-homepage.png)
