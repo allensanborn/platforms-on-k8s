@@ -81,22 +81,27 @@ func testService(ctx context.Context, client *dagger.Client, dir string) error {
 
 	// Start Kafka for all services
 	kafkaSvc := client.Container().
-		From("docker.io/bitnami/kafka:3.4.1-debian-11-r0").
-		WithEnvVariable("ALLOW_PLAINTEXT_LISTENER", "yes").
-		WithEnvVariable("KAFKA_CFG_LISTENERS", "PLAINTEXT://:9092,CONTROLLER://:9093,EXTERNAL://:9094").
-		WithEnvVariable("KAFKA_CFG_ADVERTISED_LISTENERS", "PLAINTEXT://kafka:9092,EXTERNAL://kafka:9094").
-		WithEnvVariable("KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP", "CONTROLLER:PLAINTEXT,EXTERNAL:PLAINTEXT,PLAINTEXT:PLAINTEXT").
+		From("docker.io/apache/kafka:4.3.1").
+		WithEnvVariable("KAFKA_NODE_ID", "1").
+		WithEnvVariable("KAFKA_PROCESS_ROLES", "broker,controller").
+		WithEnvVariable("KAFKA_LISTENERS", "PLAINTEXT://:9092,CONTROLLER://:9093,EXTERNAL://:9094").
+		WithEnvVariable("KAFKA_ADVERTISED_LISTENERS", "PLAINTEXT://kafka:9092,EXTERNAL://kafka:9094").
+		WithEnvVariable("KAFKA_LISTENER_SECURITY_PROTOCOL_MAP", "CONTROLLER:PLAINTEXT,EXTERNAL:PLAINTEXT,PLAINTEXT:PLAINTEXT").
+		WithEnvVariable("KAFKA_CONTROLLER_LISTENER_NAMES", "CONTROLLER").
+		WithEnvVariable("KAFKA_CONTROLLER_QUORUM_VOTERS", "1@kafka:9093").
+		WithEnvVariable("KAFKA_INTER_BROKER_LISTENER_NAME", "PLAINTEXT").
+		WithEnvVariable("KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR", "1").
 		WithExposedPort(9092)
 
 	client.Container().
-		From("docker.io/bitnami/kafka:3.4.1-debian-11-r0").
+		From("docker.io/apache/kafka:4.3.1").
 		WithEntrypoint([]string{"/bin/sh", "-c"}).
 		WithExec([]string{
-			"kafka-topics.sh --bootstrap-server kafka:9092 --list",
+			"/opt/kafka/bin/kafka-topics.sh --bootstrap-server kafka:9092 --list",
 			"echo -e 'Creating kafka topics'",
-			"kafka-topics.sh --bootstrap-server kafka:9092 --create --if-not-exists --topic events-topic --replication-factor 1 --partitions 1",
+			"/opt/kafka/bin/kafka-topics.sh --bootstrap-server kafka:9092 --create --if-not-exists --topic events-topic --replication-factor 1 --partitions 1",
 			"echo -e 'Successfully created the following topics:'",
-			"kafka-topics.sh --bootstrap-server kafka:9092 --list",
+			"/opt/kafka/bin/kafka-topics.sh --bootstrap-server kafka:9092 --list",
 		})
 
 	// accomplished by just not specifying a platform; the default
@@ -110,8 +115,7 @@ func testService(ctx context.Context, client *dagger.Client, dir string) error {
 
 	if dir == "agenda-service" {
 		redisSvc := client.Container().
-			From("docker.io/bitnami/redis:7.0.11-debian-11-r12").
-			WithEnvVariable("ALLOW_EMPTY_PASSWORD", "yes").
+			From("docker.io/valkey/valkey:9.1.2").
 			WithExposedPort(6379)
 		ctr = ctr.WithServiceBinding("redis", redisSvc)
 		ctr = ctr.WithEnvVariable("REDIS_HOST", "redis")
@@ -119,12 +123,11 @@ func testService(ctx context.Context, client *dagger.Client, dir string) error {
 
 	if dir == "c4p-service" {
 		redisSvc := client.Container().
-			From("docker.io/bitnami/redis:7.0.11-debian-11-r12").
-			WithEnvVariable("ALLOW_EMPTY_PASSWORD", "yes").
+			From("docker.io/valkey/valkey:9.1.2").
 			WithExposedPort(6379)
 
 		postgreSvc := client.Container().
-			From("bitnami/postgresql:15.3.0-debian-11-r17").
+			From("docker.io/library/postgres:18").
 			WithEnvVariable("POSTGRES_USER", "postgres").
 			WithEnvVariable("POSTGRES_PASSWORD", "postgres").
 			WithFile("/docker-entrypoint-initdb.d/init.sql", srcDir.File("init.sql")).

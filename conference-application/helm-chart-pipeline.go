@@ -82,7 +82,7 @@ func helmPackage(ctx context.Context, c *dagger.Client) (*dagger.Container, stri
 
 	helm := c.Container().From("alpine/helm:3.12.1").
 		WithMountedDirectory(".", chartDir).
-		WithExec([]string{"repo", "add", "bitnami", "https://charts.bitnami.com/bitnami"}).
+		WithExec([]string{"repo", "add", "valkey", "https://valkey.io/valkey-helm/"}).
 		WithExec([]string{"dependency", "build"}).
 		WithExec([]string{"package", "-u", "."})
 
