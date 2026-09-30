@@ -1,5 +1,7 @@
 # Update notes: Bitnami replacements and Crossplane v2
 
+Chronological log. Each problem has its own write-up in the [findings index](docs/findings/README.md).
+
 Branch `crossplane-v2-and-bitnami-replacements` of a fork of `salaboy/platforms-on-k8s`, started 2026-09-30.
 
 Why: Bitnami stopped publishing versioned images to `docker.io/bitnami` in August 2025, so the book's pinned Redis, PostgreSQL and Kafka images return 404 and the pods sit in `ImagePullBackOff`. Crossplane v2 removed native patch-and-transform, cluster-scoped-by-default XRs and XR connection secrets, so the chapter 5 and 6 compositions no longer apply. Every change below was tested on a local kind cluster (kind v0.31.0, Kubernetes v1.35.0) unless marked UNTESTED.
@@ -13,6 +15,10 @@ Why: Bitnami stopped publishing versioned images to `docker.io/bitnami` in Augus
 - 16:34 chapter 5 AWS compositions: converted, render + schema validation only (UNTESTED against AWS).
 - 16:37 docker-compose files and Dagger pipelines: images replaced; two compose stacks brought up locally.
 - 16:40 all `pek-` clusters deleted.
+- 16:44 chart v1.1.0 with `wait-for-dependencies` init containers ([F005](docs/findings/F005-services-crashloop-until-infra-ready.md)) installed from the packaged `.tgz` on fresh cluster `pek-m1`: 0 restarts, e2e PASS.
+- 16:47 chart pushed to `oci://ghcr.io/allensanborn/conference-app:v1.1.0` (digest `sha256:a7e7b8e3e07fd9459bc56cc711887945ff2a2ac0d70acf0b2ccdcc39100b4246`), linked to this repo; still **private** ([F002](docs/findings/F002-published-chart-embeds-bitnami.md)). READMEs repointed.
+- 16:50 frontend-go Kafka read retry ([F006](docs/findings/F006-frontend-exits-on-kafka-read-error.md)): unit test passes; local ko build loaded into kind survived a broker restart with 0 restarts (original image: 3). Not published.
+- 16:58 findings log `docs/findings/` created and backfilled (F001-F031).
 
 ## Chapter 2: conference-app Helm chart
 
