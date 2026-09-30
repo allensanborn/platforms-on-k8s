@@ -112,7 +112,7 @@ team-a-dev-env-conference   conference-app           v1.1.0    True     True    
 team-a-dev-env-strimzi      strimzi-kafka-operator   1.2.0     True     True    deployed   1          Install complete   3m39s
 ```
 
-Creation is eventually consistent, so expect warning events on the inner Releases for the first minutes: the vcluster's kubeconfig Secret (`vc-team-a-dev-env`) doesn't exist yet, then the CloudNativePG and Strimzi CRDs or webhooks aren't ready when the application chart is first installed. provider-helm retries (the application Release sets `rollbackLimit: 3` so a failed first install is retried). `READY` on the Environment means the Helm releases are deployed; the application pods need a few more minutes for Kafka to start.
+Creation is eventually consistent, so expect warning events on the inner Releases for the first minutes: the vcluster's kubeconfig Secret (`vc-team-a-dev-env`) doesn't exist yet, then the CloudNativePG and Strimzi CRDs or webhooks aren't ready when the application chart is first installed. provider-helm retries (the application Release sets `rollbackLimit: 3` so a failed first install is retried, and `helm-provider.yaml` sets `--poll=1m` so that retry comes within a minute or two instead of the default 10 minutes; see [F017](../docs/findings/F017-provider-helm-failed-release-no-retry.md)). `READY` on the Environment means the Helm releases are deployed; the application pods need a few more minutes for Kafka to start.
 
 Then we can connect to the provisioned environment by running (use the CONNECT-TO column for the vcluster name): 
 ```shell

@@ -24,6 +24,11 @@ Why: Bitnami stopped publishing versioned images to `docker.io/bitnami` in Augus
 - 17:34 chapter 9: DORA CloudEvents demo on CNPG, metric endpoint PASS (F037); Keptn `klt` chart frozen, not run (F038); version drift table in F031.
 - 17:45 chapter 7 (Dapr): branch `v2.0.0-bitnami-replacements`, chart v2.1.0, e2e PASS with Dapr 1.11.0 (F039). Not published.
 - 17:50 `helm install … oci://ghcr.io/allensanborn/conference-app --version v1.1.0` pulled digest `sha256:a7e7b8e3…` and passed e2e with 0 restarts (with local registry credentials; anonymous pull needs the package to be public).
+- 17:50 GHCR package made public by the owner; anonymous manifest request → 200.
+- 17:52-18:15 fresh cluster `pek-final`, no registry credentials:
+  - chapter 5 README flow with the GHCR chart: PASS.
+  - chapter 6 Environment with the GHCR chart: PASS, 0 restarts inside the vcluster, debug flag on. The first attempt stalled 10 minutes on provider-helm's default poll; with `--poll=1m` a second Environment was Ready in 5m40s ([F017](docs/findings/F017-provider-helm-failed-release-no-retry.md)).
+  - chapter 4 Argo CD sync of the umbrella chart: Synced/Healthy, e2e PASS, and the debug values switch works.
 
 ## Chapter 2: conference-app Helm chart
 

@@ -2,7 +2,7 @@
 
 - **Chapter:** 4
 - **Severity:** high
-- **Status:** fixed (Helm umbrella path via Argo CD blocked until the GHCR package is public)
+- **Status:** fixed
 - **Fix commit:** fa1df29
 - **Found:** 2026-09-30, branch `crossplane-v2-and-bitnami-replacements`
 
@@ -28,7 +28,7 @@ F001/F002.
 - `values-debug-enabled.yaml` only sets `conference-app.services.frontend.debug: true`. The new chart creates fixed-value Secrets, so no `existingSecret` is needed.
 - `staging-kube/app.yaml` is regenerated with `helm template conference conference-application/helm/conference-app --skip-tests`.
 - `staging/.gitignore` ignores `charts/` and `Chart.lock`.
-- **Open:** Argo CD can't pull the umbrella's dependency until the GHCR package is public.
+- After the package went public, an Argo CD Application for path `chapter-4/argo-cd/staging/` on this branch reached `Synced Healthy` on cluster `pek-final`: 8 pods with 0 restarts, and e2e passed. Switching the Application to `values-debug-enabled.yaml` rolled the frontend, and `/api/features/` then returned `"DebugEnabled":"true"`.
 
 ## How to verify
 

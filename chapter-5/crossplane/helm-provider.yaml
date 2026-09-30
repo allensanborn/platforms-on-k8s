@@ -17,6 +17,16 @@ spec:
   serviceAccountTemplate:
     metadata:
       name: provider-helm
+  deploymentTemplate:
+    spec:
+      selector: {}
+      template:
+        spec:
+          containers:
+          - name: package-runtime
+            # Default poll is 10m, so a Release whose first install failed (e.g. while an
+            # operator's webhook starts inside a new vcluster) waits 10 minutes to be retried.
+            args: ["--poll=1m"]
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
