@@ -3,7 +3,7 @@
 - **Chapter:** 9
 - **Severity:** medium
 - **Status:** documented (untested)
-- **Fix commit:** 
+- **Fix commit:** —
 - **Found:** 2026-09-30, branch `crossplane-v2-and-bitnami-replacements`
 
 ## Symptom
