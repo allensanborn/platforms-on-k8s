@@ -143,7 +143,7 @@ helm upgrade --install strimzi oci://quay.io/strimzi-helm/strimzi-kafka-operator
 > The published chart `oci://docker.io/salaboy/conference-app:v1.0.0` still depends on the Bitnami images and can only be updated by its owner. Until it is republished, install the chart from this repository. From the repository root:
 
 ```shell
-helm dependency build conference-application/helm/conference-app
+helm dependency update conference-application/helm/conference-app
 helm install conference conference-application/helm/conference-app
 ```
 

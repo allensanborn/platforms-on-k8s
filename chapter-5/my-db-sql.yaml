@@ -2,13 +2,14 @@ apiVersion: salaboy.com/v1alpha1
 kind: Database
 metadata:
   name: my-db-sql
+  namespace: team-a
 spec:
-  compositionSelector:
-    matchLabels:
-      provider: local
-      type: dev
-      kind: sql
-  parameters: 
+  crossplane:
+    compositionSelector:
+      matchLabels:
+        provider: local
+        type: dev
+        kind: sql
+  parameters:
     size: small
     mockData: false
-     

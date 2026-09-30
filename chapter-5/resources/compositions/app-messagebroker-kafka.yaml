@@ -1,3 +1,6 @@
+# Crossplane v2: compose Strimzi resources directly (operator must be installed,
+# watching all namespaces). The Kafka CR is named after the XR, so the bootstrap
+# address is <xr-name>-kafka-bootstrap:9092.
 apiVersion: apiextensions.crossplane.io/v1
 kind: Composition
 metadata:
@@ -7,40 +10,91 @@ metadata:
     provider: local
     kind: kafka
 spec:
-  writeConnectionSecretsToNamespace: crossplane-system
   compositeTypeRef:
     apiVersion: salaboy.com/v1alpha1
     kind: MessageBroker
-  resources:
-    - name: kafka-helm-release
-      base:
-        apiVersion: helm.crossplane.io/v1beta1
-        kind: Release
-        metadata:
-          annotations:
-            crossplane.io/external-name: # patched
-        spec:
-          rollbackLimit: 3
-          forProvider:
-            namespace: default
-            chart:
-              name: kafka
-              repository: https://charts.bitnami.com/bitnami
-              version: "22.1.5"
-          providerConfigRef:
-            name: default
-      patches:
-        - fromFieldPath: metadata.name
-          toFieldPath: metadata.annotations[crossplane.io/external-name]
-          policy:
-            fromFieldPath: Required
+  mode: Pipeline
+  pipeline:
+  - step: patch-and-transform
+    functionRef:
+      name: function-patch-and-transform
+    input:
+      apiVersion: pt.fn.crossplane.io/v1beta1
+      kind: Resources
+      resources:
+      - name: node-pool
+        base:
+          apiVersion: kafka.strimzi.io/v1
+          kind: KafkaNodePool
+          spec:
+            replicas: 1
+            roles: [controller, broker]
+            storage:
+              type: jbod
+              volumes:
+              - id: 0
+                type: persistent-claim
+                size: 1Gi
+                deleteClaim: true
+                kraftMetadata: shared
+        patches:
         - fromFieldPath: metadata.name
           toFieldPath: metadata.name
           transforms:
-            - type: string
-              string:
-                fmt: "%s-kafka"         
-      readinessChecks:
-      - type: MatchString
-        fieldPath: status.atProvider.state
-        matchString: deployed
+          - type: string
+            string:
+              type: Format
+              fmt: "%s-dual-role"
+        - fromFieldPath: metadata.name
+          toFieldPath: metadata.labels[strimzi.io/cluster]
+        - fromFieldPath: spec.parameters.size
+          toFieldPath: spec.storage.volumes[0].size
+          transforms:
+          - type: map
+            map:
+              small: 1Gi
+              medium: 10Gi
+              large: 50Gi
+        readinessChecks:
+        - type: None
+      - name: kafka
+        base:
+          apiVersion: kafka.strimzi.io/v1
+          kind: Kafka
+          spec:
+            kafka:
+              version: 4.3.1
+              listeners:
+              - name: plain
+                port: 9092
+                type: internal
+                tls: false
+              config:
+                offsets.topic.replication.factor: 1
+                transaction.state.log.replication.factor: 1
+                transaction.state.log.min.isr: 1
+                default.replication.factor: 1
+                min.insync.replicas: 1
+            entityOperator:
+              topicOperator: {}
+        patches:
+        - fromFieldPath: metadata.name
+          toFieldPath: metadata.name
+      - name: events-topic
+        base:
+          apiVersion: kafka.strimzi.io/v1
+          kind: KafkaTopic
+          spec:
+            topicName: events-topic
+            partitions: 1
+            replicas: 1
+        patches:
+        - fromFieldPath: metadata.name
+          toFieldPath: metadata.name
+          transforms:
+          - type: string
+            string:
+              type: Format
+              fmt: "%s-events-topic"
+        - fromFieldPath: metadata.name
+          toFieldPath: metadata.labels[strimzi.io/cluster]

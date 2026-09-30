@@ -1,3 +1,5 @@
+# Crossplane v2: compose a CloudNativePG Cluster directly (operator must be installed).
+# Superuser access is enabled because c4p-service connects as `postgres` to the `postgres` DB.
 apiVersion: apiextensions.crossplane.io/v1
 kind: Composition
 metadata:
@@ -7,52 +9,46 @@ metadata:
     provider: local
     kind: sql
 spec:
-  writeConnectionSecretsToNamespace: crossplane-system
   compositeTypeRef:
     apiVersion: salaboy.com/v1alpha1
     kind: Database
-  resources:  
-    - name: postgresql-helm-release
-      base:
-        apiVersion: helm.crossplane.io/v1beta1
-        kind: Release
-        metadata:
-          annotations:
-            crossplane.io/external-name: # patched
-        spec:
-          rollbackLimit: 3
-          forProvider:
-            namespace: default
-            chart:
-              name: postgresql
-              repository: https://charts.bitnami.com/bitnami
-              version: "12.5.9"
-            values:
-              image:
-                debug: true
-              primary: 
-                initdb:
-                  user: postgres
-                  password: postgres
-                  scriptsConfigMap: c4p-init-sql
-              global:
-                postgresql:
-                  auth: 
-                    postgresPassword: postgres
-          providerConfigRef:
-            name: default
-      patches:
-        - fromFieldPath: metadata.name
-          toFieldPath: metadata.annotations[crossplane.io/external-name]
-          policy:
-            fromFieldPath: Required
+  mode: Pipeline
+  pipeline:
+  - step: patch-and-transform
+    functionRef:
+      name: function-patch-and-transform
+    input:
+      apiVersion: pt.fn.crossplane.io/v1beta1
+      kind: Resources
+      resources:
+      - name: postgres-cluster
+        base:
+          apiVersion: postgresql.cnpg.io/v1
+          kind: Cluster
+          spec:
+            instances: 1
+            enableSuperuserAccess: true
+            bootstrap:
+              initdb:
+                postInitSQLRefs:
+                  configMapRefs:
+                  - name: c4p-init-sql   # resources/config/c4p-sql-init.yaml, same namespace
+                    key: init.sql
+            storage:
+              size: 1Gi
+        patches:
         - fromFieldPath: metadata.name
           toFieldPath: metadata.name
           transforms:
-            - type: string
-              string:
-                fmt: "%s-postgres"
-      readinessChecks:
-      - type: MatchString
-        fieldPath: status.atProvider.state
-        matchString: deployed
+          - type: string
+            string:
+              type: Format
+              fmt: "%s-postgresql"
+        - fromFieldPath: spec.parameters.size
+          toFieldPath: spec.storage.size
+          transforms:
+          - type: map
+            map:
+              small: 1Gi
+              medium: 10Gi
+              large: 50Gi
