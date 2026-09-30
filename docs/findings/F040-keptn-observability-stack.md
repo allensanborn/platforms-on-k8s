@@ -3,7 +3,7 @@
 - **Chapter:** 9 (keptn)
 - **Severity:** medium
 - **Status:** open (two of three blockers fixed)
-- **Fix commit:** PENDING
+- **Fix commit:** 47641bd
 - **Found:** 2026-09-30, branch `crossplane-v2-and-bitnami-replacements`
 
 ## Symptom
