@@ -11,7 +11,7 @@ _🌍 Disponible en_: [English](README.md) | [中文 (Chinese)](README-zh.md) | 
 Este capítulo cubre dos tutoriales diferentes, sobre cómo usar las métricas de DORA para medir el rendimiento de tu iniciativa de plataforma.
 
 - [Métricas de DORA y CloudEvents](dora-cloudevents/README-es.md)
-- [Keptn Lifecycle Toolkit](keptn/README-es.md)
+- [Deployment frequency with Argo CD (formerly Keptn Lifecycle Toolkit)](keptn/README.md)
 
 ## Resumen
 

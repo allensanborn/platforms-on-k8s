@@ -15,7 +15,7 @@ _🌍 Available in_: [English](README.md) | [中文 (Chinese)](README-zh.md) | [
 In this tutorial we measure our deliveries, watch rollouts happen, and gate them on checks. We do this without changing the application's code:
 
 1. **Deployment frequency and duration**: every successful Argo CD sync of the Conference application is a deployment. Argo CD counts them (`argocd_app_sync_total`) and times them (`argocd_app_sync_duration_seconds_total`). Prometheus scrapes these metrics and Grafana charts them.
-2. **Rollout traces**: Argo CD's application controller exports a trace of each sync over OTLP to Jaeger.
+2. **Rollout traces**: Argo CD's application controller exports a trace of each sync over OTLP to Jaeger. This one needs Argo CD 3.6, currently a release candidate (see [Installation](#installation)).
 3. **Post-deployment tasks**: an Argo CD `PostSync` hook runs a Kubernetes Job after every new version is deployed and healthy.
 4. **Gates**: an Argo Rollouts `AnalysisTemplate` checks a Prometheus query during a canary release. If the check fails, the release is aborted.
 
@@ -50,7 +50,10 @@ Install everything the tutorial needs. This takes a few minutes:
 make install
 ```
 
-The Makefile pins Argo CD `v3.6.0-rc1`. Argo CD 3.6 is the first release whose application controller exports sync spans ([argoproj/argo-cd#28396](https://github.com/argoproj/argo-cd/pull/28396)). With v3.5 you still get the metrics and the post-sync task, but Jaeger only shows repo-server and API-server spans. Use `make install ARGOCD_VERSION=v3.6.0` once 3.6.0 is released.
+> [!Warning]
+> The Makefile installs Argo CD **`v3.6.0-rc1`, a release candidate**. It is the only way to get rollout traces today. Before 3.6, Argo CD's application controller sends no spans for a sync: they were added in [argoproj/argo-cd#28396](https://github.com/argoproj/argo-cd/pull/28396), after the 3.5 branch was cut, and v3.5.3 is the latest stable release as of September 2026.
+>
+> Only the **rollout traces** demo needs 3.6. The deployment-frequency dashboard, the post-deployment task and the release gate work the same on the stable release: `make install ARGOCD_VERSION=v3.5.3`. With 3.5, Jaeger shows only `argocd-server` and `argocd-repo-server` spans. Once 3.6.0 is released, use `make install ARGOCD_VERSION=v3.6.0` ([F063](../../docs/findings/F063-argocd-release-candidate-pin.md)).
 
 ## Deploying the Conference application with Argo CD
 
@@ -122,7 +125,7 @@ Open [http://localhost:3000](http://localhost:3000) (`admin`/`admin`) and go to 
 make port-forward-jaeger
 ```
 
-Open [http://localhost:16686](http://localhost:16686), pick the `argocd-controller` service and find the `controller.SyncAppState` trace. Its spans show the steps of the sync: computing the tasks, applying resources, running the `PostSync` hook.
+Open [http://localhost:16686](http://localhost:16686) (this needs Argo CD 3.6, see [Installation](#installation)), pick the `argocd-controller` service and find the `controller.SyncAppState` trace. Its spans show the steps of the sync: computing the tasks, applying resources, running the `PostSync` hook.
 
 ## Releasing a new version
 

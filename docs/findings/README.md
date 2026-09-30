@@ -59,3 +59,4 @@ Discrepancies with the two source documents each have their own finding:
 | [F060](F060-keptn-archived-tutorial-replaced.md) | Keptn is archived; the Keptn tutorial now uses Argo CD, Argo Rollouts, Prometheus/Grafana and Jaeger v2 | 9 | high | fixed | branch `keptn-current` |
 | [F061](F061-chart-dead-keptn-label.md) | The Conference chart still puts a dead `keptn.sh/post-deployment-tasks` label on every service | 2-9 | low | open | — |
 | [F062](F062-argocd-sync-traces-need-3-6.md) | Argo CD only exports sync traces from 3.6; the tutorial pins v3.6.0-rc1 | 9 | medium | documented | branch `keptn-current` |
+| [F063](F063-argocd-release-candidate-pin.md) | The Keptn-replacement tutorial pins an Argo CD release candidate (v3.6.0-rc1) | 9 | low | open | — |

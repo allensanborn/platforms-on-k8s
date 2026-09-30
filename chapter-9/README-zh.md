@@ -10,7 +10,7 @@ _🌍 Available in_: [English](README.md)
 本文包含两个不同的教程，讲述如何使用 DORA 指标来度量平台的绩效。
 
 - [DORA metrics and CloudEvents](dora-cloudevents/README-zh.md)
-- [Keptn Lifecycle Toolkit](keptn/README-zh.md)
+- [Deployment frequency with Argo CD (formerly Keptn Lifecycle Toolkit)](keptn/README.md)
 
 ## 总结
 

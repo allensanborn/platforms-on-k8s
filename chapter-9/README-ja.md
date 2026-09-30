@@ -10,7 +10,7 @@
 この章では、DORメトリクス（DORA: DevOps Research and Assessment）を使用してプラットフォームイニシアチブのパフォーマンスを測定する方法に関する2つの異なるチュートリアルを取り上げています。
 
 - [DORメトリクスとCloudEvents](dora-cloudevents/README-ja.md)
-- [Keptn Lifecycle Toolkit](keptn/README-ja.md)
+- [Deployment frequency with Argo CD (formerly Keptn Lifecycle Toolkit)](keptn/README.md)
 
 ## まとめ
 

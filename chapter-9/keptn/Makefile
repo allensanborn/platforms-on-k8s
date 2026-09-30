@@ -1,5 +1,6 @@
-# Argo CD 3.6 is the first release whose application controller exports sync spans over OTLP
-# (argoproj/argo-cd#28396). Move to v3.6.0 once it is released.
+# Release candidate: Argo CD 3.6 is the first release whose application controller exports sync spans
+# over OTLP (argoproj/argo-cd#28396). Only the trace demo needs it; v3.5.3 (stable) runs everything else.
+# Move to v3.6.0 once it is released (docs/findings/F063).
 ARGOCD_VERSION ?= v3.6.0-rc1
 ARGO_ROLLOUTS_VERSION ?= v1.10.0
 KUBE_PROMETHEUS_STACK_VERSION ?= 91.8.2

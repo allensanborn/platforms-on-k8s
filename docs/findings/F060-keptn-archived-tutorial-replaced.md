@@ -34,7 +34,9 @@ The tutorial was rewritten (the user chose this option) on tools the book alread
 
 Lead time for changes isn't covered: Argo CD's metrics have no commit timestamp. The README points to the CloudEvents/CDEvents tutorial in the same chapter.
 
-Not changed (outside `chapter-9/keptn/`): `chapter-9/README*.md` still list the tutorial as "Keptn Lifecycle Toolkit", and their "Sum up" paragraph still describes Keptn. The translated `chapter-9/keptn/README-{es,ja,zh}.md` only got an "out of date" banner ([F041](F041-translated-readmes-stale.md)).
+`chapter-9/README*.md`: only the Keptn mentions changed. In all four languages, the tutorial link now reads "Deployment frequency with Argo CD (formerly Keptn Lifecycle Toolkit)" and points to the English README. In the English README, the "Sum up" sentence about Keptn now describes Argo CD and notes the archiving. The Japanese and Chinese "Sum up" paragraphs still describe Keptn, and the translated `chapter-9/keptn/README-{es,ja,zh}.md` only got an "out of date" banner ([F041](F041-translated-readmes-stale.md)).
+
+Argo CD is pinned to a release candidate for the trace demo only ([F063](F063-argocd-release-candidate-pin.md)).
 
 ## How to verify
 
