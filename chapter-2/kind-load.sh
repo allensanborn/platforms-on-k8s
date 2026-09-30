@@ -3,6 +3,7 @@
 # Bitnami images were replaced by Valkey, CloudNativePG and Strimzi (Sept 2026).
 images=(
   docker.io/valkey/valkey:9.1.2
+  docker.io/library/busybox:1.37
   ghcr.io/cloudnative-pg/cloudnative-pg:1.30.1
   ghcr.io/cloudnative-pg/postgresql:18.6-system-trixie
   quay.io/strimzi/operator:1.2.0

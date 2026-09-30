@@ -20,6 +20,10 @@ Why: Bitnami stopped publishing versioned images to `docker.io/bitnami` in Augus
 - 16:50 frontend-go Kafka read retry ([F006](docs/findings/F006-frontend-exits-on-kafka-read-error.md)): unit test passes; local ko build loaded into kind survived a broker restart with 0 restarts (original image: 3). Not published.
 - 16:53 findings log `docs/findings/` created and backfilled (F001-F031).
 - 17:05 chapter 4: Argo CD v3.5.3 (needs `--server-side`, [F032](docs/findings/F032-argocd-client-side-apply-too-long.md)); staging umbrella on GHCR v1.1.0 installed with Helm and switched to debug values: PASS; Argo CD sync of `staging-kube` from this branch: Synced/Healthy, e2e PASS after F007 recurred ([F033](docs/findings/F033-argocd-staging-bitnami-values.md)). Argo CD sync of the umbrella chart is blocked until the GHCR package is public.
+- 17:30 chapter 8: Knative Serving 1.10.2 + Strimzi/CNPG/Valkey infra, e2e and canary split PASS; Argo Rollouts v1.10.0 canary and blue-green PASS (F034-F036).
+- 17:34 chapter 9: DORA CloudEvents demo on CNPG, metric endpoint PASS (F037); Keptn `klt` chart frozen, not run (F038); version drift table in F031.
+- 17:45 chapter 7 (Dapr): branch `v2.0.0-bitnami-replacements`, chart v2.1.0, e2e PASS with Dapr 1.11.0 (F039). Not published.
+- 17:50 `helm install … oci://ghcr.io/allensanborn/conference-app --version v1.1.0` pulled digest `sha256:a7e7b8e3…` and passed e2e with 0 restarts (with local registry credentials; anonymous pull needs the package to be public).
 
 ## Chapter 2: conference-app Helm chart
 

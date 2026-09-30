@@ -1,6 +1,6 @@
 # Findings
 
-Everything found while updating this fork (branch `crossplane-v2-and-bitnami-replacements`) for Bitnami's image removal and Crossplane v2, one file per finding. [`UPDATE-NOTES.md`](../../UPDATE-NOTES.md) is the chronological log. Status: **fixed** (changed here and tested unless the file says otherwise), **documented** (explained, no code change needed or possible), **open** (not fixed), **wontfix**.
+Everything found while updating this fork (branch `crossplane-v2-and-bitnami-replacements`; chapter 7's Dapr version is fixed on branch `v2.0.0-bitnami-replacements`, cut from upstream `v2.0.0`) for Bitnami's image removal and Crossplane v2, one file per finding. [`UPDATE-NOTES.md`](../../UPDATE-NOTES.md) is the chronological log. Status: **fixed** (changed here and tested unless the file says otherwise), **documented** (explained, no code change needed or possible), **open** (not fixed), **wontfix**.
 
 Sources the findings were checked against: the llm-wiki page *Platform Engineering on Kubernetes — Crossplane chapters, v2 edition* (F015, F016, F017, F018, F019, F028, F029 correct it) and the Bitnami replacement inventory `charts.md` (F010, F011 and the tested items in F009 and F005 extend it).
 
@@ -44,3 +44,4 @@ Sources the findings were checked against: the llm-wiki page *Platform Engineeri
 | [F036](F036-chapter8-name-clash-and-knative-drift.md) | Knative and Argo Rollouts tutorials clash on one cluster; Knative pinned at 1.10 | 8 | low | documented | 571afcd |
 | [F037](F037-chapter9-dora-bitnami-postgresql.md) | Chapter 9 DORA demo installed PostgreSQL from the Bitnami chart | 9 | high | fixed | c4e4279 |
 | [F038](F038-keptn-klt-chart-renamed.md) | Keptn tutorial installs the frozen `klt` chart | 9 | medium | documented (untested) |  |
+| [F039](F039-chapter7-v2-chart-bitnami.md) | Chapter 7's Dapr chart (v2.0.0) has the same Bitnami dependencies | 7 | high | fixed on branch `v2.0.0-bitnami-replacements` | a62e4bd (other branch) |
