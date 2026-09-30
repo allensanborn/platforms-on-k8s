@@ -37,12 +37,13 @@ Once Dapr is installed, we can install our Dapr-Enabled and FeatureFlag-Enabled 
 >
 > Details and test evidence: `docs/findings/` on the `crossplane-v2-and-bitnami-replacements` branch (F039).
 
-Now you can install the Dapr version of the application from this branch (the chart is not published to a registry yet):
+Now you can install the Dapr version of the application. The chart and its images are rebuilt from this branch and published to GitHub Container Registry:
 
 ```
-helm dependency update conference-application/helm/conference-app
-helm install conference conference-application/helm/conference-app
+helm install conference oci://ghcr.io/allensanborn/conference-app --version v2.1.0
 ```
+
+(Alternative, from a checkout of this branch: `helm dependency update conference-application/helm/conference-app && helm install conference conference-application/helm/conference-app`.)
 
 This version of the Helm Chart installs the same application infrastructure as version `v1.0.0` (PostgreSQL, Redis, and Kafka). Services now interact with Redis and Kafka are now using Dapr APIs. This version of the Application also adds OpenFeature Feature Flags using `flagd`.
 

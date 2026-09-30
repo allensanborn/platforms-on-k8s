@@ -1,6 +1,6 @@
 services:
-  registry: salaboy
-  tag: v2.0.0
+  registry: ghcr.io/allensanborn
+  tag: v2.1.0
   frontend: 
     image: frontend-go-1739aa83b5e69d4ccb8a5615830ae66c
   agenda: 

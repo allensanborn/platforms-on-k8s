@@ -4,7 +4,7 @@ name: conference-app
 version: v2.1.0
 type: application
 icon: https://www.salaboy.com/content/images/2023/06/avatar-new.png
-appVersion: v2.0.0
+appVersion: v2.1.0
 maintainers: 
   - name: salaboy
     email: salaboy@gmail.com
