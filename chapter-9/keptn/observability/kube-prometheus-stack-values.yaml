@@ -1,0 +1,14 @@
+# Kept small for kind: no Alertmanager, node-exporter or default alert rules.
+alertmanager:
+  enabled: false
+nodeExporter:
+  enabled: false
+defaultRules:
+  create: false
+prometheus:
+  prometheusSpec:
+    scrapeInterval: 15s
+    # pick up the ServiceMonitor in argocd/servicemonitor.yaml, which has no Helm release label
+    serviceMonitorSelectorNilUsesHelmValues: false
+grafana:
+  adminPassword: admin

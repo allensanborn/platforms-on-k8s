@@ -1,0 +1,191 @@
+# Grafana's sidecar loads any ConfigMap labelled grafana_dashboard=1 in its namespace.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: deployment-frequency-dashboard
+  namespace: monitoring
+  labels:
+    grafana_dashboard: "1"
+data:
+  deployment-frequency.json: |
+    {
+      "title": "Deployment frequency (Argo CD)",
+      "uid": "deployment-frequency",
+      "schemaVersion": 39,
+      "time": {
+        "from": "now-3h",
+        "to": "now"
+      },
+      "refresh": "30s",
+      "tags": [
+        "dora"
+      ],
+      "panels": [
+        {
+          "id": 1,
+          "title": "Successful deployments since the controller started",
+          "type": "stat",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "gridPos": {
+            "x": 0,
+            "y": 0,
+            "w": 8,
+            "h": 6
+          },
+          "targets": [
+            {
+              "refId": "A",
+              "datasource": {
+                "type": "prometheus",
+                "uid": "prometheus"
+              },
+              "expr": "sum by (name) (argocd_app_sync_total{phase=\"Succeeded\",dry_run!=\"true\"})",
+              "legendFormat": "{{name}}"
+            }
+          ],
+          "fieldConfig": {
+            "defaults": {
+              "unit": "none"
+            },
+            "overrides": []
+          }
+        },
+        {
+          "id": 2,
+          "title": "Average deployment duration",
+          "type": "stat",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "gridPos": {
+            "x": 8,
+            "y": 0,
+            "w": 8,
+            "h": 6
+          },
+          "targets": [
+            {
+              "refId": "A",
+              "datasource": {
+                "type": "prometheus",
+                "uid": "prometheus"
+              },
+              "expr": "sum by (name) (argocd_app_sync_duration_seconds_total) / sum by (name) (argocd_app_sync_total{dry_run!=\"true\"})",
+              "legendFormat": "{{name}}"
+            }
+          ],
+          "fieldConfig": {
+            "defaults": {
+              "unit": "s"
+            },
+            "overrides": []
+          }
+        },
+        {
+          "id": 3,
+          "title": "Failed deployments",
+          "type": "stat",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "gridPos": {
+            "x": 16,
+            "y": 0,
+            "w": 8,
+            "h": 6
+          },
+          "targets": [
+            {
+              "refId": "A",
+              "datasource": {
+                "type": "prometheus",
+                "uid": "prometheus"
+              },
+              "expr": "sum by (name) (argocd_app_sync_total{phase=~\"Failed|Error\",dry_run!=\"true\"}) or vector(0)",
+              "legendFormat": "{{name}}"
+            }
+          ],
+          "fieldConfig": {
+            "defaults": {
+              "unit": "none"
+            },
+            "overrides": []
+          }
+        },
+        {
+          "id": 4,
+          "title": "Successful deployments over time",
+          "type": "timeseries",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "gridPos": {
+            "x": 0,
+            "y": 6,
+            "w": 24,
+            "h": 8
+          },
+          "targets": [
+            {
+              "refId": "A",
+              "datasource": {
+                "type": "prometheus",
+                "uid": "prometheus"
+              },
+              "expr": "sum by (name) (argocd_app_sync_total{phase=\"Succeeded\",dry_run!=\"true\"})",
+              "legendFormat": "{{name}}"
+            }
+          ],
+          "fieldConfig": {
+            "defaults": {
+              "unit": "none",
+              "custom": {
+                "lineInterpolation": "stepAfter"
+              }
+            },
+            "overrides": []
+          }
+        },
+        {
+          "id": 5,
+          "title": "Duration of each deployment",
+          "type": "timeseries",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "gridPos": {
+            "x": 0,
+            "y": 14,
+            "w": 24,
+            "h": 8
+          },
+          "targets": [
+            {
+              "refId": "A",
+              "datasource": {
+                "type": "prometheus",
+                "uid": "prometheus"
+              },
+              "expr": "sum by (name) (increase(argocd_app_sync_duration_seconds_total[2m]))",
+              "legendFormat": "{{name}}"
+            }
+          ],
+          "fieldConfig": {
+            "defaults": {
+              "unit": "s",
+              "custom": {
+                "lineInterpolation": "stepAfter"
+              }
+            },
+            "overrides": []
+          }
+        }
+      ]
+    }

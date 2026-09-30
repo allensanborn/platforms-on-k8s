@@ -1,0 +1,41 @@
+# Chapter 8's notifications-service canary, with an analysis step that gates the promotion.
+apiVersion: argoproj.io/v1alpha1
+kind: Rollout
+metadata:
+  name: notifications-service-canary
+spec:
+  replicas: 2
+  strategy:
+    canary:
+      steps:
+      - setWeight: 50
+      - analysis:
+          templates:
+          - templateName: memory-below-limit
+          args:
+          - name: max-memory-mib
+            value: "200"
+      - setWeight: 100
+  revisionHistoryLimit: 2
+  selector:
+    matchLabels:
+      app: notifications-service-canary
+  template:
+    metadata:
+      labels:
+        app: notifications-service-canary
+    spec:
+      containers:
+      - name: notifications-service
+        image: ghcr.io/allensanborn/notifications-service-0e27884e01429ab7e350cb5dff61b525:v1.2.0
+        env:
+        - name: KAFKA_URL
+          value: conference-kafka-bootstrap.default.svc.cluster.local
+        ports:
+        - containerPort: 8080
+        resources:
+          requests:
+            cpu: 100m
+            memory: 256Mi
+          limits:
+            memory: 256Mi

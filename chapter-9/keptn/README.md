@@ -1,4 +1,4 @@
-# Keptn Lifecycle Toolkit, out of the box Deployment Frequency
+# Deployment frequency, rollout traces and post-deployment tasks (formerly: Keptn Lifecycle Toolkit)
 
 ---
 _🌍 Available in_: [English](README.md) | [中文 (Chinese)](README-zh.md) | [日本語 (Japanese)](README-ja.md)| [Español](README-es.md)
@@ -7,147 +7,186 @@ _🌍 Available in_: [English](README.md) | [中文 (Chinese)](README-zh.md) | [
 
 ---
 
+> [!Important]
+> **Why Keptn was replaced (September 2026).** Section 9.3 of the book uses the Keptn Lifecycle Toolkit. Keptn's maintainers asked the CNCF to archive the project because its main sponsor had stepped back and most maintainers were inactive. The CNCF TOC voted to archive it, and archiving was completed on 2025-09-08 ([cncf/toc#1584](https://github.com/cncf/toc/issues/1584)). The last release is Keptn v2.5.0 (Helm chart `keptn` 0.11.0), from 2025-03-19. The `klt` chart that this tutorial used to install stopped at 0.2.6 in 2023, and the Jaeger operator it used no longer reconciles a Jaeger instance ([F038](../../docs/findings/F038-keptn-klt-chart-renamed.md), [F040](../../docs/findings/F040-keptn-observability-stack.md)).
+>
+> This tutorial now shows the same ideas with tools the book already uses: [Argo CD](https://argo-cd.readthedocs.io) (chapter 4), [Argo Rollouts](https://argoproj.github.io/rollouts/) (chapter 8), Prometheus and Grafana, and [Jaeger v2](https://www.jaegertracing.io). The mapping table below shows where each Keptn step went. See [F060](../../docs/findings/F060-keptn-archived-tutorial-replaced.md) for details.
 
-In this short tutorial, we explore the Keptn Lifecycle Toolkit to monitor, observe and react to our cloud native applications lifecycle events. 
+In this tutorial we measure our deliveries, watch rollouts happen, and gate them on checks. We do this without changing the application's code:
 
+1. **Deployment frequency and duration**: every successful Argo CD sync of the Conference application is a deployment. Argo CD counts them (`argocd_app_sync_total`) and times them (`argocd_app_sync_duration_seconds_total`). Prometheus scrapes these metrics and Grafana charts them.
+2. **Rollout traces**: Argo CD's application controller exports a trace of each sync over OTLP to Jaeger.
+3. **Post-deployment tasks**: an Argo CD `PostSync` hook runs a Kubernetes Job after every new version is deployed and healthy.
+4. **Gates**: an Argo Rollouts `AnalysisTemplate` checks a Prometheus query during a canary release. If the check fails, the release is aborted.
+
+## What changed from the book
+
+| Book / Keptn tutorial | Now |
+| --- | --- |
+| `make install`: cert-manager, jaeger-operator, kube-prometheus manifests, OpenTelemetry Collector, `klt` Helm chart | `make install`: CloudNativePG + Strimzi operators, kube-prometheus-stack, Jaeger v2 all-in-one, Argo CD (with `otlp.address` set), Argo Rollouts |
+| `kubectl annotate ns default keptn.sh/lifecycle-toolkit="enabled"` | `kubectl apply -f argocd/application.yaml`: Argo CD manages the Conference application |
+| `app.kubernetes.io/name` / `part-of` / `version` labels tell Keptn what a workload is | The Argo CD `Application` is the unit of deployment. The same labels are still on the Deployments, and the post-sync task prints them |
+| `KeptnTaskDefinition` `stdout-notification` (Deno) + `keptn.sh/post-deployment-tasks` label | [`hooks/post-sync-notification.yaml`](hooks/post-sync-notification.yaml): a Job annotated `argocd.argoproj.io/hook: PostSync` |
+| `helm install conference …` | Argo CD syncs the chart `oci://ghcr.io/allensanborn/conference-app` `v1.1.0` |
+| `kubectl edit deploy conference-notifications-service-deployment` to `v1.1.0` | Change the Application's chart version to `v1.2.0`. Argo CD syncs the new release |
+| Grafana → Dashboards → *Keptn Applications* (deployment count, time between deployments, per-version duration) | Grafana → Dashboards → *Deployment frequency (Argo CD)* (deployment count, average and per-deployment duration, failures) |
+| Jaeger: `lifecycle-operator` traces of the rollout | Jaeger: `argocd-controller` traces (`controller.SyncAppState`, `sync.Sync`, `sync.apply`, …) |
+| `kubectl get jobs` / `kubectl logs` of `post-stdout-notification-*` | `kubectl get jobs` / `kubectl logs` of `post-sync-notification-*` |
+| Keptn Evaluations (mentioned, not demonstrated) | [`gates/`](gates/): an Argo Rollouts canary with a Prometheus memory check that promotes or aborts |
+
+Lead time for changes needs the commit time of each change, which Argo CD's metrics don't carry. The [CloudEvents/CDEvents tutorial](../dora-cloudevents/README.md) in this chapter covers that.
 
 ## Installation
 
-You need a Kubernetes Cluster to install [Keptn KLT](https://keptn.sh). You can create one using Kubernetes KinD as we did in [Chapter 2](https://github.com/salaboy/platforms-on-k8s/blob/main/chapter-2/README.md#creating-a-local-cluster-with-kubernetes-kind)
+Create a KinD cluster. One node is enough:
 
-Then we can install the Keptn Lifecycle Toolkit (KLT). This can be usually done by just installing the Keptn Lifecycle Toolkit Helm chart, but for this tutorial we want to also install Prometheus, Jaeger and Grafana for having dashboards. For that reason, based on the Keptn Lifecycle Toolkit repository, we will use a Makefile to install all the tools that we need for this example. 
+```shell
+kind create cluster --name dev
+```
 
-Run: 
+Install everything the tutorial needs. This takes a few minutes:
 
 ```shell
 make install
 ```
 
-**Note*: The installation process will take a few minutes to install all the tools needed.
+The Makefile pins Argo CD `v3.6.0-rc1`. Argo CD 3.6 is the first release whose application controller exports sync spans ([argoproj/argo-cd#28396](https://github.com/argoproj/argo-cd/pull/28396)). With v3.5 you still get the metrics and the post-sync task, but Jaeger only shows repo-server and API-server spans. Use `make install ARGOCD_VERSION=v3.6.0` once 3.6.0 is released.
 
-Finally, we need to let KLT know which namespace we want to monitor, and for that we need to annotate the namespaces:
+## Deploying the Conference application with Argo CD
 
-```shell
-kubectl annotate ns default keptn.sh/lifecycle-toolkit="enabled"
-```
+[`argocd/application.yaml`](argocd/application.yaml) defines an Argo CD `Application` with two sources:
 
-## Keptn Lifecycle toolkit in action
-
-Keptn uses standard Kubernetes annotation to recognize and monitor our workloads. 
-The Kubernetes Deployments used by the Conference Application are annotated with the following annotations, for example, the Agenda Service: 
+- the Conference Helm chart from GitHub Container Registry, version `v1.1.0`, with the Ingress disabled. There is no ingress controller in this cluster, and an Ingress without one never becomes Healthy. Argo CD only runs `PostSync` hooks once everything is Healthy.
+- the [`hooks/`](hooks/) directory of this repository, which holds the post-deployment task. If you forked the repository, point `repoURL` and `targetRevision` at your fork and branch.
 
 ```shell
-        app.kubernetes.io/name: agenda-service
-        app.kubernetes.io/part-of: agenda-service
-        app.kubernetes.io/version: {{ .Values.services.tag  }}
+kubectl apply -f argocd/application.yaml
 ```
 
-These annotations allow tools to understand a bit more about our workloads, for example, in this case tools know that the service name is `agenda-service`. We can use the `app.kubernetes.io/part-of` to aggregate multiple services to be part of the same applicaiton. For this example, we wanted to keep each service as a separate entity so we can monitor each individually. 
+Argo CD syncs the application automatically. Wait until it is `Synced` and `Healthy`. Kafka and PostgreSQL take a few minutes:
 
-In this example, we will be also using a KeptnTask that enables us to perform pre- and post-deployment tasks. You can deploy the following extremely simple example `KeptnTaskDefinition`:
+```shell
+kubectl get application conference -n argocd -w
+```
+
+```shell
+NAME         SYNC STATUS   HEALTH STATUS
+conference   Synced        Healthy
+```
+
+## The post-deployment task
+
+The task is a plain Kubernetes Job with one annotation:
 
 ```yaml
-apiVersion: lifecycle.keptn.sh/v1alpha3
-kind: KeptnTaskDefinition
 metadata:
-  name: stdout-notification
-spec:
-  function:
-    inline:
-      code: |
-        let context = Deno.env.get("CONTEXT");
-        console.log("Keptn Task Executed with context: \n");
-        console.log(context);
-
+  generateName: post-sync-notification-
+  annotations:
+    argocd.argoproj.io/hook: PostSync
 ```
 
-As you can see this task is only printing the context from its execution, but here is where you can build any integration with other projects or call external systems. If you look at the Keptn examples, you will find KeptnTaskDefinition to connect, for example, to Slack, run load tests or to validate that deployments are working as expected after being updated. These tasks use [Deno](https://deno.land/), a secure JavaScript runtime with Typescript supported out-of-the-box, Python 3 or directly a container image. 
-
-By running: 
+Argo CD creates this Job after every successful sync, once all the synced resources are Healthy. The sync operation only finishes when the Job completes. A failed hook fails the sync, which shows up in the *Failed deployments* panel. As with KeptnTaskDefinitions, platform teams can keep a library of these hooks and add them to any application's sources. This task only prints what was deployed. In practice, this is where you notify another system, run smoke or load tests, or check that the new version works:
 
 ```shell
-kubectl apply -f keptntask.yaml
+kubectl get jobs
 ```
 
-KeptnTaskDefinitions allow Platform Teams to create reusable tasks that can be hooked into Pre-/ Post-deployment hooks of our applications. By adding the following annotation to our workloads (deployments in this case), Keptn will execute the `stdout-notification` automatically, in this case after performing the deployment (and after any update): 
-
 ```shell
-  keptn.sh/post-deployment-tasks: stdout-notification
-``` 
-
-Let's deploy the Conference application, and lets open Jaeger and Grafana Dashboards. In separate tabs run: 
-
-```shell
-make port-forward-jaeger
+NAME                                   STATUS     COMPLETIONS   DURATION   AGE
+post-sync-notification-...             Complete   1/1           4s         1m
 ```
 
-You can point your browser to [http://localhost:16686/](http://localhost:16686/), you should see: 
+```shell
+kubectl logs job/<the job name from above>
+```
 
-![jaeger](../imgs/jaeger.png)
+```shell
+conference-agenda-service-deployment          version=v1.0.0   image=salaboy/agenda-service-...:v1.0.0
+conference-c4p-service-deployment             version=v1.0.0   image=salaboy/c4p-service-...:v1.0.0
+conference-frontend-deployment                version=v1.0.0   image=salaboy/frontend-go-...:v1.0.0
+conference-notifications-service-deployment   version=v1.0.0   image=salaboy/notifications-service-...:v1.0.0
+conference-redis                              version=         image=docker.io/valkey/valkey:...
+```
 
+## Dashboards and traces
 
-and then in a separate terminal: 
+In separate terminals:
 
 ```shell
 make port-forward-grafana
 ```
 
-You can point your browser to [http://localhost:3000/](http://localhost:3000/). Use the `admin/admin` credentials and you should see: 
-
-![grafana](../imgs/grafana.png)
-
-
-Let's now deploy the Conference Application as we did in Chapter 2: 
+Open [http://localhost:3000](http://localhost:3000) (`admin`/`admin`) and go to `Dashboards` → `Deployment frequency (Argo CD)`. You should see one deployment of `conference` and how long it took. That time runs from the start of the sync until the post-deployment task finished, so it includes waiting for Kafka and PostgreSQL.
 
 ```shell
-helm install conference oci://ghcr.io/allensanborn/conference-app --version v1.2.0
+make port-forward-jaeger
 ```
 
-Check both Jaeger and Grafana Keptn Dashboards, as by default, Keptn Workloads will track the deployment frequency. 
+Open [http://localhost:16686](http://localhost:16686), pick the `argocd-controller` service and find the `controller.SyncAppState` trace. Its spans show the steps of the sync: computing the tasks, applying resources, running the `PostSync` hook.
 
-In Grafana go to `Dashboards` -> `Keptn Applications`.  You will see a drop-down that allows you to select the different applications services. Check the Notifications Service. Because we’ve only deployed the first version of the deployment, there is not much to see, but the dashboard will become more interesting after we release new versions of our services.
+## Releasing a new version
 
-For example, edit the notifications-service deployment and update the `app.kubernetes.io/version` annotation to have the value `v1.3.0` and update the tag used for the container image to be `v1.1.0`
+Now release a new version of the application. In a GitOps setup you would change the version in Git. Here we patch the Application's chart version from `v1.1.0` to `v1.2.0`:
 
 ```shell
-kubectl edit deploy conference-notifications-service-deployment
+kubectl patch application conference -n argocd --type json \
+  -p '[{"op":"replace","path":"/spec/sources/0/targetRevision","value":"v1.2.0"}]'
 ```
 
-After you perform the changes, and the new version is up and running, check the dashboards again. 
-In Grafana, you will see we’re on the second successful deployment, that the average between deployments was 5.83 minutes in my environment, and that `v1.0.0` took 641s while `v1.1.0` took only 40s. There is definitely room for improvement there. 
+Argo CD syncs the new release and runs the post-deployment task again. Once the application is `Synced` and `Healthy` again, check:
 
-![grafana](../imgs/grafana-notificatons-service-v1.1.0.png)
+- `kubectl get jobs`: a second `post-sync-notification-*` Job. Its log shows the new version (`v1.2.0`) and images.
+- Grafana: two deployments. The *Successful deployments over time* panel shows when each one happened (the time between deployments), and *Duration of each deployment* shows how long each took. The second deployment is usually much faster, because the infrastructure is already running.
+- Jaeger: a second `controller.SyncAppState` trace for the new sync.
 
-If you look at the traces in Jaeger, you will see that the `lifecycle-operator` one of the core components in Keptn is monitoring our deployment resources and performing lifecycle operations, like, for example, calling pre- and post-deployments tasks. 
+## Gating a release on a check
 
-![jager](../imgs/jaeger-notifications-service-v1.1.0.png)
-
-These tasks are executed as Kubernetes Jobs in the same namespace where the workloads are running. You can take a look at the logs from these tasks by tailing the job pod's logs. 
+Keptn Evaluations let you block a release that, for example, uses too much memory. Argo Rollouts does this with an `AnalysisTemplate` that runs during a release (see [chapter 8](../../chapter-8/argo-rollouts/README.md) for Argo Rollouts itself). [`gates/analysis-template.yaml`](gates/analysis-template.yaml) queries Prometheus for the memory used by the canary pods. It fails if any pod uses more than `max-memory-mib`. [`gates/rollout.yaml`](gates/rollout.yaml) is chapter 8's notifications-service canary with an analysis step between 50% and 100%:
 
 ```shell
-kubectl get jobs
-NAME                                   COMPLETIONS   DURATION   AGE
-post-stdout-notification-25899-78387   1/1           3s         66m
-post-stdout-notification-28367-11337   1/1           4s         61m
-post-stdout-notification-54572-93558   1/1           4s         66m
-post-stdout-notification-75100-85603   1/1           3s         66m
-post-stdout-notification-77674-78421   1/1           3s         66m
-post-stdout-notification-93609-30317   1/1           3s         23m
+kubectl apply -f gates/
+kubectl argo rollouts get rollout notifications-service-canary
 ```
 
-The Job with id `post-stdout-notification-93609-30317` was executed after I've performed the update on the Notification Service deployment. 
+Release a new version. The analysis runs three measurements, 20 seconds apart, and then the rollout is promoted:
 
 ```shell
-> kubectl logs -f post-stdout-notification-93609-30317-vvwp4
-Keptn Task Executed with context: 
+kubectl argo rollouts set image notifications-service-canary \
+  notifications-service=ghcr.io/allensanborn/notifications-service-0e27884e01429ab7e350cb5dff61b525:v1.3.0
+kubectl argo rollouts get rollout notifications-service-canary --watch
+```
 
-{"workloadName":"notifications-service-notifications-service","appName":"notifications-service","appVersion":"","workloadVersion":"v1.1.0","taskType":"post","objectType":"Workload"}
+```shell
+kubectl get analysisrun
+NAME                                          STATUS
+notifications-service-canary-...-2-1          Successful
+```
 
+Now make the check impossible to pass (1 MiB) and release again. The analysis fails, the rollout is aborted, and the stable version keeps serving:
+
+```shell
+kubectl patch rollout notifications-service-canary --type json \
+  -p '[{"op":"replace","path":"/spec/strategy/canary/steps/1/analysis/args/0/value","value":"1"}]'
+kubectl argo rollouts set image notifications-service-canary \
+  notifications-service=ghcr.io/allensanborn/notifications-service-0e27884e01429ab7e350cb5dff61b525:v1.2.0
+kubectl argo rollouts get rollout notifications-service-canary --watch
+```
+
+```shell
+Status:          ✖ Degraded
+Message:         RolloutAborted: Rollout aborted update to revision 3: Metric "memory" assessed Failed due to failed (1) > failureLimit (0)
 ```
 
 ## Next steps
 
-I strongly recommend you to get more familiar with Keptn Lifecycle Toolkit features and functionalities as what we’ve seen in this short tutorial are just the basics. Check the concept of [KeptnApplication](https://lifecycle.keptn.sh/docs/concepts/apps/) for more control on how your services are deployed, as Keptn allows you to define fine-grained rules about which services and which versions are allowed to be deployed. 
+Everything here is standard Argo tooling, so it applies to any application Argo CD manages. You can go further with:
 
-By grouping multiple services as part of the same Kubernetes Application using the `app.kubernetes.io/part-of` annotation, you can perform pre- and post-actions on a group of services, allowing you to validate that not only individual services are working as expected but the whole set is. 
+- [Argo CD Notifications](https://argo-cd.readthedocs.io/en/stable/operator-manual/notifications/), to send deployment events to Slack, webhooks or CloudEvents-consuming services such as the one in the [CloudEvents tutorial](../dora-cloudevents/README.md).
+- `PreSync` hooks, for checks that must pass before a new version is deployed.
+- Argo Rollouts analysis based on your own service metrics (error rate, latency) rather than memory.
 
+## Clean up
+
+```shell
+kind delete clusters dev
+```

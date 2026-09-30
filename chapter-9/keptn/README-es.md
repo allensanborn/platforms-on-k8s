@@ -8,6 +8,9 @@ _🌍 Disponible en_: [English](README.md) | [中文 (Chinese)](README-zh.md) | 
 
 ---
 
+> [!Important]
+> Out of date (September 2026): Keptn was archived by the CNCF, and this tutorial was rewritten for Argo CD, Argo Rollouts, Prometheus/Grafana and Jaeger v2. The commands below no longer work; follow the [English README](README.md).
+
 En este breve tutorial exploraremos Ketpn Lifecycle Toolkit para monitorizar, observar y reaccionar a eventos del ciclo de vida de nuestras aplicaciones nativas en la nube.
 
 ## Instalación

@@ -1,0 +1,13 @@
+# Lets Argo CD pull the Conference chart from GitHub Container Registry (a public OCI Helm repository).
+apiVersion: v1
+kind: Secret
+metadata:
+  name: conference-chart-repository
+  namespace: argocd
+  labels:
+    argocd.argoproj.io/secret-type: repository
+stringData:
+  name: allensanborn
+  type: helm
+  url: ghcr.io/allensanborn
+  enableOCI: "true"

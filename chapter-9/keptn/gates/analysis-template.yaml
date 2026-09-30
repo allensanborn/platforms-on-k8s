@@ -1,0 +1,20 @@
+# Fails the rollout if any notifications-service canary pod uses more memory than `max-memory-mib`
+# (the replacement for a KeptnEvaluationDefinition). Reads cAdvisor metrics from Prometheus.
+apiVersion: argoproj.io/v1alpha1
+kind: AnalysisTemplate
+metadata:
+  name: memory-below-limit
+spec:
+  args:
+  - name: max-memory-mib
+  metrics:
+  - name: memory
+    interval: 20s
+    count: 3
+    failureLimit: 0
+    successCondition: result[0] < {{args.max-memory-mib}}
+    provider:
+      prometheus:
+        address: http://kube-prometheus-stack-prometheus.monitoring.svc.cluster.local:9090
+        query: |
+          max(container_memory_working_set_bytes{namespace="default", container="notifications-service", pod=~"notifications-service-canary-.*"}) / 1024 / 1024

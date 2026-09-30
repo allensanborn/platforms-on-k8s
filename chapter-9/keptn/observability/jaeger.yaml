@@ -1,0 +1,51 @@
+# Jaeger v2 all-in-one: an OpenTelemetry Collector distribution with in-memory storage.
+# Receives OTLP on 4317 (gRPC) / 4318 (HTTP) and serves the UI on 16686.
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: observability
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: jaeger
+  namespace: observability
+spec:
+  selector:
+    matchLabels:
+      app: jaeger
+  template:
+    metadata:
+      labels:
+        app: jaeger
+    spec:
+      containers:
+      - name: jaeger
+        image: jaegertracing/jaeger:2.21.0
+        ports:
+        - containerPort: 4317
+        - containerPort: 4318
+        - containerPort: 16686
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 16686
+        resources:
+          limits:
+            memory: 512Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: jaeger
+  namespace: observability
+spec:
+  selector:
+    app: jaeger
+  ports:
+  - name: otlp-grpc
+    port: 4317
+  - name: otlp-http
+    port: 4318
+  - name: ui
+    port: 16686
