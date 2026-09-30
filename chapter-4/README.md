@@ -23,14 +23,14 @@ Once you have the cluster up and running with the nginx-ingress controller, let'
 
 ```shell
 kubectl create namespace argocd
-kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
+kubectl apply -n argocd --server-side --force-conflicts -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
 ```
 
 You should see something like this: 
 
 ```shell
 > kubectl create namespace argocd
-kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
+kubectl apply -n argocd --server-side --force-conflicts -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
 namespace/argocd created
 customresourcedefinition.apiextensions.k8s.io/applications.argoproj.io created
 customresourcedefinition.apiextensions.k8s.io/applicationsets.argoproj.io created
@@ -123,6 +123,9 @@ Once in, you should see the empty home screen:
 Let's now set up our Staging Environment.
 
 
+> [!Note]
+> Updated September 2026: without `--server-side`, current Argo CD manifests (v3.x) fail with `The CustomResourceDefinition "applicationsets.argoproj.io" is invalid: metadata.annotations: Too long`. The staging chart now depends on this fork's `oci://ghcr.io/allensanborn/conference-app` `v1.1.0` (Valkey, CloudNativePG and Strimzi instead of Bitnami), so install the CloudNativePG and Strimzi operators first, as in [Chapter 2](../chapter-2/README.md#installing-the-infrastructure-operators). If you point Argo CD at your own fork, use the branch that has these changes as the Revision.
+
 # Setting up our application for the Staging Environment
 
 For this tutorial, we will use a single namespace to represent our Staging Environment. With Argo CD there are no limits, and our Staging environment could be a completely different Kubernetes Cluster. 
@@ -193,17 +196,18 @@ You should see something like this:
 
 ```shell
 > kubectl get pods -n staging
-NAME                                                              READY   STATUS    RESTARTS        AGE
-stating-environment-agenda-service-deployment-6c9cbb9695-xj99z    1/1     Running   5 (6m ago)      8m4s
-stating-environment-c4p-service-deployment-69d485ffd8-q96z4       1/1     Running   5 (5m52s ago)   8m4s
-stating-environment-frontend-deployment-cd76bdc8c-58vzr           1/1     Running   5 (6m3s ago)    8m4s
-stating-environment-kafka-0                                       1/1     Running   0               8m4s
-stating-environment-notifications-service-deployment-5c9b5bzb5p   1/1     Running   5 (6m13s ago)   8m4s
-stating-environment-postgresql-0                                  1/1     Running   0               8m4s
-stating-environment-redis-master-0                                1/1     Running   0               8m4s
+NAME                                                              READY   STATUS    RESTARTS   AGE
+staging-environment-agenda-service-deployment-f78c4fd9f-l5k5l     1/1     Running   0          45s
+staging-environment-c4p-service-deployment-95c896b44-t8glw        1/1     Running   0          45s
+staging-environment-entity-operator-67df84bc99-6kpwp              1/1     Running   0          13s
+staging-environment-frontend-deployment-5556f589c9-c5wlg          1/1     Running   0          45s
+staging-environment-notifications-service-deployment-68f88j2sg9   1/1     Running   0          45s
+staging-environment-postgresql-1                                  1/1     Running   0          29s
+staging-environment-redis-6c8c7db9cb-qgpq4                        1/1     Running   0          45s
+staging-environment-staging-environment-dual-role-0               1/1     Running   0          43s
 ```
 
-**Note**: a few restarts are OK (RESTARTS column), as some services need to wait for the infrastructure (Redis, PostgreSQL, Kafka) to be up before them being healthy.
+**Note**: each service waits in an init container until the infrastructure (Redis, PostgreSQL, Kafka) accepts connections, so you shouldn't see restarts. When you later switch values files, the new frontend pod may restart once or twice while Kafka rebalances its consumer group (see [F006](../docs/findings/F006-frontend-exits-on-kafka-read-error.md)).
 
 ## Changing the Application's configuration in the Staging Environment
 
