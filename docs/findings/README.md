@@ -1,8 +1,10 @@
 # Findings
 
-Everything found while updating this fork (branch `crossplane-v2-and-bitnami-replacements`; chapter 7's Dapr version is fixed on branch `v2.0.0-bitnami-replacements`, cut from upstream `v2.0.0`) for Bitnami's image removal and Crossplane v2, one file per finding. [`UPDATE-NOTES.md`](../../UPDATE-NOTES.md) is the chronological log. Status: **fixed** (changed here and tested unless the file says otherwise), **documented** (explained, no code change needed or possible), **open** (not fixed), **wontfix**.
+Everything found while updating this fork (branch `crossplane-v2-and-bitnami-replacements`; chapter 7's Dapr version is fixed on branch `v2.0.0-bitnami-replacements`, cut from upstream `v2.0.0`) for Bitnami's image removal and Crossplane v2, one file per finding. [`UPDATE-NOTES.md`](../../UPDATE-NOTES.md) is the chronological log. All images and charts are rebuilt and published with [`hack/publish-ghcr.sh`](../../hack/publish-ghcr.sh): run `main` on this branch and `dapr` on `v2.0.0-bitnami-replacements`. Status: **fixed** (changed here and tested unless the file says otherwise), **documented** (explained, no code change needed or possible), **open** (not fixed), **wontfix**.
 
-Sources the findings were checked against: the llm-wiki page *Platform Engineering on Kubernetes — Crossplane chapters, v2 edition* (F015, F016, F017, F018, F019, F028, F029 correct it) and the Bitnami replacement inventory `charts.md` (F010, F011 and the tested items in F009 and F005 extend it).
+Discrepancies with the two source documents each have their own finding:
+- The llm-wiki page *Platform Engineering on Kubernetes — Crossplane chapters, v2 edition*: [F015](F015-vcluster-kubeconfig-san.md) (kubeconfig server), [F019](F019-frontend-debug-value-key.md) (debug key), [F016](F016-environment-deletion-hangs.md) (deletion hang), [F017](F017-provider-helm-failed-release-no-retry.md) (failed Release retry), [F018](F018-operators-inside-vcluster.md) (operators inside the vcluster), [F028](F028-page-cnpg-app-secret.md) (CNPG `-app` Secret and init SQL), [F029](F029-page-messagebroker-and-keyvalue.md) (MessageBroker and keyvalue), [F023](F023-crossplane-cli-validate-renamed.md) (CLI validate).
+- The Bitnami replacement inventory `charts.md`: [F010](F010-helm-dependency-build-needs-repo.md) (`helm dependency build`), [F011](F011-strimzi-pvcs-retained.md) (Strimzi `deleteClaim`), [F004](F004-ingress-nginx-kind-nodeselector.md) (ingress-nginx nodeSelector).
 
 | ID | Title | Chapter | Severity | Status | Fix commit |
 | --- | --- | --- | --- | --- | --- |
@@ -47,3 +49,10 @@ Sources the findings were checked against: the llm-wiki page *Platform Engineeri
 | [F039](F039-chapter7-v2-chart-bitnami.md) | Chapter 7's Dapr chart (v2.0.0) has the same Bitnami dependencies | 7 | high | fixed on branch `v2.0.0-bitnami-replacements` | a62e4bd (other branch) |
 | [F040](F040-keptn-observability-stack.md) | The Keptn chapter's observability install no longer completes | 9 | medium | open (two of three blockers fixed) | 47641bd |
 | [F041](F041-translated-readmes-stale.md) | Translated READMEs still carry the old commands | 2-9 | low | open | — |
+| [F042](F042-chapter6-packaged-chart-removed.md) | Removed the packaged chart copy from chapter 6 | 6 | info | documented (decision) | cdf1e79 |
+| [F043](F043-upstream-v3-chart.md) | Upstream's published `conference-app:v3.0.0` has no source in the repo and doesn't include infrastructure | 7 (and later) | info | documented | — |
+| [F044](F044-image-inventory.md) | Inventory of images from salaboy's registry, and their fork replacements | all | high | fixed | f03c06d, cdf1e79, d88feec |
+| [F045](F045-ko-single-file-builds.md) | Chapter 9 functions can't be built with current ko (`ko://file.go`) | 9 | medium | fixed | f03c06d |
+| [F046](F046-chapter8-demo-versions.md) | Chapter 8 release demos need two image versions; the fork publishes v1.2.0 and v1.3.0 | 8, 9 (keptn) | low | documented | f03c06d, cdf1e79 |
+| [F047](F047-admin-go-test-flag-parse.md) | admin-go's `go test` failed because `flag.Parse()` ran in `init()` | 6 | low | fixed | f03c06d |
+| [F048](F048-committed-binaries.md) | Compiled binaries are committed in the repo | 6, dev loop | info | documented | — |
