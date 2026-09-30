@@ -148,7 +148,7 @@ spec:
         - image: salaboy/notifications-service-0e27884e01429ab7e350cb5dff61b525:v1.0.0
           env:
           - name: KAFKA_URL
-            value: kafka.default.svc.cluster.local
+            value: kafka-kafka-bootstrap.default.svc.cluster.local
           ...<MORE ENVIRONMENT VARIABLES HERE>...  
 ```
 

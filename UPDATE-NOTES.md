@@ -29,8 +29,8 @@ Why: Bitnami stopped publishing versioned images to `docker.io/bitnami` in Augus
   - chapter 5 README flow with the GHCR chart: PASS.
   - chapter 6 Environment with the GHCR chart: PASS, 0 restarts inside the vcluster, debug flag on. The first attempt stalled 10 minutes on provider-helm's default poll; with `--poll=1m` a second Environment was Ready in 5m40s ([F017](docs/findings/F017-provider-helm-failed-release-no-retry.md)).
   - chapter 4 Argo CD sync of the umbrella chart: Synced/Healthy, e2e PASS, and the debug values switch works.
-- 18:35 chapter 9 Keptn: `make install` fails on a fresh cluster. Fixed the cert-manager wait and the removed `gcr.io/kubebuilder/kube-rbac-proxy` image; the Jaeger CR is still never reconciled by jaeger-operator 1.45 ([F040](docs/findings/F040-keptn-observability-stack.md)). Chapter not completed.
-- 18:45 `from-source/README.md` and the main-branch chapter-7 README repointed; translated READMEs left as-is ([F041](docs/findings/F041-translated-readmes-stale.md)). All `pek-` clusters deleted.
+- 18:20 chapter 9 Keptn: `make install` fails on a fresh cluster. Fixed the cert-manager wait and the removed `gcr.io/kubebuilder/kube-rbac-proxy` image; the Jaeger CR is still never reconciled by jaeger-operator 1.45 ([F040](docs/findings/F040-keptn-observability-stack.md)). Chapter not completed.
+- 18:25 `from-source/README.md` and the main-branch chapter-7 README repointed; translated READMEs left as-is ([F041](docs/findings/F041-translated-readmes-stale.md)). All `pek-` clusters deleted.
 
 ## Chapter 2: conference-app Helm chart
 

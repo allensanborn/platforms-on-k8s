@@ -101,7 +101,7 @@ Spec:
     Name:   keyPrefix
     Value:  name
     Name:   redisHost
-    Value:  conference-redis-master.default.svc.cluster.local:6379
+    Value:  conference-redis.default.svc.cluster.local:6379
     Name:   redisPassword
     Secret Key Ref:
       Key:   redis-password
@@ -112,7 +112,7 @@ Events:      <none>
 
 ```
 
-You can see that the Statestore component is connecting to the Redis instance exposed by this service name `conference-redis-master.default.svc.cluster.local` and using the `conference-redis` secret to obtain the password to connect.
+You can see that the Statestore component is connecting to the Redis instance exposed by this service name `conference-redis.default.svc.cluster.local` and using the `conference-redis` secret to obtain the password to connect.
 
 Similarly, the PubSub Dapr Component that is connecting to Kafka: 
 
@@ -133,7 +133,7 @@ Metadata:
 Spec:
   Metadata:
     Name:   brokers
-    Value:  conference-kafka.default.svc.cluster.local:9092
+    Value:  conference-kafka-bootstrap.default.svc.cluster.local:9092
     Name:   authType
     Value:  none
   Type:     pubsub.kafka
