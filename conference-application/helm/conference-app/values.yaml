@@ -12,29 +12,25 @@ services:
 install:
   infrastructure: true
   ingress: true
+# Redis-compatible key-value store: official Valkey chart, aliased as `redis`.
+# The Secret it reads is created by templates/infrastructure.yaml.
+redis:
+  auth:
+    enabled: true
+    usersExistingSecret: "{{ .Release.Name }}-redis"
+    aclUsers:
+      default:
+        permissions: "~* &* +@all"
+        passwordKey: redis-password
+  dataStorage:
+    enabled: true
+    requestedSize: 1Gi
+# PostgreSQL (CloudNativePG Cluster) and Kafka (Strimzi) are rendered by
+# templates/infrastructure.yaml; their operators must be installed first.
 postgresql:
-  image:
-    debug: true
-  primary: 
-    persistence:
-      size: "1Gi"
-    initdb:
-      user: postgres
-      password: postgres
-      scriptsConfigMap: c4p-init-sql
-  global:
-    postgresql:
-      auth: 
-        postgresPassword: postgres
-redis: 
-  architecture: standalone
-  master:
-    persistence:
-      size: "1Gi"
-kafka: 
-  persistence:
-    size: "1Gi"
-  provisioning:
-    topics:
-    - name: events-topic
-      partitions: 1
+  storage:
+    size: 1Gi
+kafka:
+  version: 4.3.1
+  storage:
+    size: 1Gi

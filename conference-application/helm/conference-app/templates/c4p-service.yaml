@@ -27,14 +27,14 @@ spec:
           value: http://notifications-service.{{ .Release.Namespace }}.svc.cluster.local
 {{- if .Values.install.infrastructure }} 
         - name: KAFKA_URL
-          value: {{ .Release.Name }}-kafka.{{ .Release.Namespace }}.svc.cluster.local
+          value: {{ .Release.Name }}-kafka-bootstrap.{{ .Release.Namespace }}.svc.cluster.local
         - name: POSTGRES_HOST
-          value: {{ .Release.Name }}-postgresql.{{ .Release.Namespace }}.svc.cluster.local
+          value: {{ .Release.Name }}-postgresql-rw.{{ .Release.Namespace }}.svc.cluster.local
         - name: POSTGRES_PASSWORD
           valueFrom:
             secretKeyRef:
-              name: {{ .Release.Name }}-postgresql
-              key: postgres-password 
+              name: {{ .Release.Name }}-postgresql-superuser
+              key: password
 {{- else }}
         - name: KAFKA_URL
           value: {{ .Values.c4p.kafka.url}}
@@ -44,7 +44,7 @@ spec:
           valueFrom:
             secretKeyRef:
               name: {{ .Values.c4p.postgresql.secretName}}
-              key: postgres-password 
+              key: {{ .Values.c4p.postgresql.secretKey | default "password" }}
 {{- end }}                
         - name: POD_NODENAME
           valueFrom:

@@ -1,18 +1,18 @@
-docker pull bitnami/redis:7.0.11-debian-11-r12
-docker pull bitnami/postgresql:15.3.0-debian-11-r17
-docker pull bitnami/kafka:3.4.1-debian-11-r0
-docker pull registry.k8s.io/ingress-nginx/controller:v1.8.1
-docker pull registry.k8s.io/ingress-nginx/kube-webhook-certgen:v20230407
-docker pull salaboy/frontend-go-1739aa83b5e69d4ccb8a5615830ae66c:v1.0.0
-docker pull salaboy/agenda-service-0967b907d9920c99918e2b91b91937b3:v1.0.0
-docker pull salaboy/c4p-service-a3dc0474cbfa348afcdf47a8eee70ba9:v1.0.0
-docker pull salaboy/notifications-service-0e27884e01429ab7e350cb5dff61b525:v1.0.0
-kind load docker-image -n dev bitnami/redis:7.0.11-debian-11-r12
-kind load docker-image -n dev bitnami/postgresql:15.3.0-debian-11-r17
-kind load docker-image -n dev bitnami/kafka:3.4.1-debian-11-r0
-kind load docker-image -n dev registry.k8s.io/ingress-nginx/controller:v1.8.1
-kind load docker-image -n dev registry.k8s.io/ingress-nginx/kube-webhook-certgen:v20230407
-kind load docker-image -n dev salaboy/frontend-go-1739aa83b5e69d4ccb8a5615830ae66c:v1.0.0
-kind load docker-image -n dev salaboy/agenda-service-0967b907d9920c99918e2b91b91937b3:v1.0.0
-kind load docker-image -n dev salaboy/c4p-service-a3dc0474cbfa348afcdf47a8eee70ba9:v1.0.0
-kind load docker-image -n dev salaboy/notifications-service-0e27884e01429ab7e350cb5dff61b525:v1.0.0
+#!/usr/bin/env bash
+# Pre-pull and load the images the Conference application and its infrastructure use.
+# Bitnami images were replaced by Valkey, CloudNativePG and Strimzi (Sept 2026).
+images=(
+  docker.io/valkey/valkey:9.1.2
+  ghcr.io/cloudnative-pg/cloudnative-pg:1.30.1
+  ghcr.io/cloudnative-pg/postgresql:18.6-system-trixie
+  quay.io/strimzi/operator:1.2.0
+  quay.io/strimzi/kafka:1.2.0-kafka-4.3.1
+  salaboy/frontend-go-1739aa83b5e69d4ccb8a5615830ae66c:v1.0.0
+  salaboy/agenda-service-0967b907d9920c99918e2b91b91937b3:v1.0.0
+  salaboy/c4p-service-a3dc0474cbfa348afcdf47a8eee70ba9:v1.0.0
+  salaboy/notifications-service-0e27884e01429ab7e350cb5dff61b525:v1.0.0
+)
+for image in "${images[@]}"; do
+  docker pull "$image"
+  kind load docker-image -n dev "$image"
+done

@@ -33,7 +33,7 @@ spec:
           value: http://notifications-service.{{ .Release.Namespace }}.svc.cluster.local  
 {{- if .Values.install.infrastructure }}         
         - name: KAFKA_URL
-          value: {{ .Release.Name }}-kafka.{{ .Release.Namespace }}.svc.cluster.local
+          value: {{ .Release.Name }}-kafka-bootstrap.{{ .Release.Namespace }}.svc.cluster.local
 {{- else }}
         - name: KAFKA_URL
           value: {{ .Values.frontend.kafka.url}}

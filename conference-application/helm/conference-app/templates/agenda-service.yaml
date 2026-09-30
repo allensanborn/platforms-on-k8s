@@ -23,9 +23,9 @@ spec:
         env:
  {{- if .Values.install.infrastructure }}       
         - name: KAFKA_URL
-          value: {{ .Release.Name }}-kafka.{{ .Release.Namespace }}.svc.cluster.local
+          value: {{ .Release.Name }}-kafka-bootstrap.{{ .Release.Namespace }}.svc.cluster.local
         - name: REDIS_HOST
-          value: {{ .Release.Name }}-redis-master.{{ .Release.Namespace }}.svc.cluster.local
+          value: {{ .Release.Name }}-redis.{{ .Release.Namespace }}.svc.cluster.local
         - name: REDIS_PASSWORD
           valueFrom:
             secretKeyRef:
@@ -36,11 +36,13 @@ spec:
           value: {{ .Values.agenda.kafka.url}}
         - name: REDIS_HOST
           value: {{ .Values.agenda.redis.host}}
+{{- if .Values.agenda.redis.secretName }}
         - name: REDIS_PASSWORD
           valueFrom:
             secretKeyRef:
               name: {{ .Values.agenda.redis.secretName}}
-              key: redis-password
+              key: {{ .Values.agenda.redis.secretKey | default "redis-password" }}
+{{- end }}
 {{- end }}              
         - name: POD_NODENAME
           valueFrom:

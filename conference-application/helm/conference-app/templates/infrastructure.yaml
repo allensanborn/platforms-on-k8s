@@ -1,0 +1,94 @@
+{{- if .Values.install.infrastructure }}
+# Replaces the Bitnami redis/postgresql/kafka subcharts.
+# Requires the CloudNativePG and Strimzi operators (see chapter-2/README.md).
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ .Release.Name }}-redis
+  namespace: {{ .Release.Namespace }}
+type: Opaque
+stringData:
+  redis-password: redis
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ .Release.Name }}-postgresql-superuser
+  namespace: {{ .Release.Namespace }}
+type: kubernetes.io/basic-auth
+stringData:
+  username: postgres
+  password: postgres
+---
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: {{ .Release.Name }}-postgresql
+  namespace: {{ .Release.Namespace }}
+spec:
+  instances: 1
+  enableSuperuserAccess: true
+  superuserSecret:
+    name: {{ .Release.Name }}-postgresql-superuser
+  bootstrap:
+    initdb:
+      # runs as the superuser against the `postgres` database, which is where c4p-service connects
+      postInitSQLRefs:
+        configMapRefs:
+        - name: c4p-init-sql
+          key: init.sql
+  storage:
+    size: {{ .Values.postgresql.storage.size }}
+---
+apiVersion: kafka.strimzi.io/v1
+kind: KafkaNodePool
+metadata:
+  name: {{ .Release.Name }}-dual-role
+  namespace: {{ .Release.Namespace }}
+  labels:
+    strimzi.io/cluster: {{ .Release.Name }}
+spec:
+  replicas: 1
+  roles: [controller, broker]
+  storage:
+    type: jbod
+    volumes:
+    - id: 0
+      type: persistent-claim
+      size: {{ .Values.kafka.storage.size }}
+      deleteClaim: true
+      kraftMetadata: shared
+---
+apiVersion: kafka.strimzi.io/v1
+kind: Kafka
+metadata:
+  name: {{ .Release.Name }}
+  namespace: {{ .Release.Namespace }}
+spec:
+  kafka:
+    version: {{ .Values.kafka.version }}
+    listeners:
+    - name: plain
+      port: 9092
+      type: internal
+      tls: false
+    config:
+      offsets.topic.replication.factor: 1
+      transaction.state.log.replication.factor: 1
+      transaction.state.log.min.isr: 1
+      default.replication.factor: 1
+      min.insync.replicas: 1
+  entityOperator:
+    topicOperator: {}
+---
+apiVersion: kafka.strimzi.io/v1
+kind: KafkaTopic
+metadata:
+  name: events-topic
+  namespace: {{ .Release.Namespace }}
+  labels:
+    strimzi.io/cluster: {{ .Release.Name }}
+spec:
+  partitions: 1
+  replicas: 1
+{{- end }}

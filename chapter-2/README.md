@@ -84,6 +84,13 @@ We need the NGINX Ingress Controller to route traffic from our laptop to the ser
 kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/static/provider/kind/deploy.yaml
 ```
 
+Newer versions of this manifest no longer pin the controller to the node labelled `ingress-ready=true`. On a cluster with worker nodes the controller can land on a worker, and then `http://localhost` answers with "connection reset". Pin it to the control-plane node, which is the one with the port mappings:
+
+```shell
+kubectl patch deploy -n ingress-nginx ingress-nginx-controller \
+  -p '{"spec":{"template":{"spec":{"nodeSelector":{"ingress-ready":"true"}}}}}'
+```
+
 Check that the pods inside the `ingress-nginx` are started correctly before proceeding: 
 ```shell
 > kubectl get pods -n ingress-nginx
@@ -115,20 +122,35 @@ nodes:
 Once we have our cluster and our Ingress Controller installed and configured, we can move ahead to install our application.
 
 
-## Installing the Conference Application
+## Installing the infrastructure operators
 
-From Helm 3.7+, we can use OCI images to publish, download, and install Helm Charts. This approach uses Docker Hub as a Helm Chart registry. 
-
-To install the Conference Application, you only need to run the following command:
+> [!Important]
+> The book's version of the chart used Bitnami's Redis, PostgreSQL and Kafka charts. Bitnami stopped publishing its versioned images to `docker.io/bitnami` in August 2025, so those pods now fail with `ImagePullBackOff`. The chart in this repository now uses the official [Valkey](https://valkey.io) chart (a Redis-compatible fork), a [CloudNativePG](https://cloudnative-pg.io) `Cluster` for PostgreSQL and a [Strimzi](https://strimzi.io) `Kafka` for Kafka. The last two are Kubernetes operators, which must be installed once per cluster before the application:
 
 ```shell
-helm install conference oci://docker.io/salaboy/conference-app --version v1.0.0
+helm upgrade --install cnpg cloudnative-pg \
+  --repo https://cloudnative-pg.github.io/charts --version 0.29.1 \
+  --namespace cnpg-system --create-namespace --wait
+
+helm upgrade --install strimzi oci://quay.io/strimzi-helm/strimzi-kafka-operator \
+  --version 1.2.0 --namespace strimzi --create-namespace \
+  --set watchAnyNamespace=true --wait
+```
+
+## Installing the Conference Application
+
+> [!Note]
+> The published chart `oci://docker.io/salaboy/conference-app:v1.0.0` still depends on the Bitnami images and can only be updated by its owner. Until it is republished, install the chart from this repository. From the repository root:
+
+```shell
+helm dependency build conference-application/helm/conference-app
+helm install conference conference-application/helm/conference-app
 ```
 
 You can also run the following command to see the details of the chart: 
 
 ```shell
-helm show all oci://docker.io/salaboy/conference-app --version v1.0.0
+helm show all conference-application/helm/conference-app
 ```
 
 Check that all the application pods are up and running. 
@@ -136,23 +158,31 @@ Check that all the application pods are up and running.
 > [!Note]
 > Notice that if your internet connection is slow, it might take a while for the application to start. Since the application's services depend on some infrastructure components (Redis, Kafka, PostgreSQL), these components need to start and be ready for the services to connect. 
 > 
-> Components like Kafka are quite heavy, with around 335+ MB, PostgreSQL 88+ MB, and Redis 35+ MB.
+> Kafka is the slowest to start: the Strimzi operator first starts a combined controller/broker pod, then an entity operator that creates the `events-topic` topic. On a laptop this takes about 5 minutes.
 
 Eventually, you should see something like this. It can take a few minutes: 
 
 ```shell
 kubectl get pods
-NAME                                                           READY   STATUS    RESTARTS      AGE
-conference-agenda-service-deployment-7cc9f58875-k7s2x          1/1     Running   4 (45s ago)   2m2s
-conference-c4p-service-deployment-54f754b67c-br9dg             1/1     Running   4 (65s ago)   2m2s
-conference-frontend-deployment-74cf86495-jthgr                 1/1     Running   4 (56s ago)   2m2s
-conference-kafka-0                                             1/1     Running   0             2m2s
-conference-notifications-service-deployment-7cbcb8677b-rz8bf   1/1     Running   4 (47s ago)   2m2s
-conference-postgresql-0                                        1/1     Running   0             2m2s
-conference-redis-master-0                                      1/1     Running   0             2m2s
+NAME                                                           READY   STATUS    RESTARTS        AGE
+conference-agenda-service-deployment-6d76f468fb-7jbjn          1/1     Running   5 (9m44s ago)   13m
+conference-c4p-service-deployment-6d4b69d557-wxzs7             1/1     Running   4 (11m ago)     13m
+conference-conference-dual-role-0                              1/1     Running   0               13m
+conference-entity-operator-599cf9fc45-pm8g2                    1/1     Running   0               10m
+conference-frontend-deployment-58df5fc775-b82n9                1/1     Running   6 (4m ago)      13m
+conference-notifications-service-deployment-6fbbb76c8f-8qdbz   1/1     Running   4 (11m ago)     13m
+conference-postgresql-1                                        1/1     Running   0               10m
+conference-redis-5895ff567d-t8czr                              1/1     Running   0               13m
 ```
 
-The Pod `RESTARTS` column shows that maybe Kafka was slow, and the service was started first by Kubernetes, hence it restarted to wait for Kafka to be ready. 
+The Pod `RESTARTS` column shows that Kafka was slow, and the services were started first by Kubernetes, hence they restarted to wait for Kafka to be ready. You can wait for the infrastructure explicitly:
+
+```shell
+kubectl wait --for=condition=Ready cluster.postgresql.cnpg.io/conference-postgresql --timeout=300s
+kubectl wait --for=condition=Ready kafka/conference --timeout=600s
+```
+
+If the frontend stays in `CrashLoopBackOff` after Kafka is `Ready`, restart it once with `kubectl rollout restart deploy/conference-frontend-deployment`.
 
 
 Now you can point your browser to [http://localhost](http://localhost) to see the application. 
@@ -175,15 +205,15 @@ kubectl get pvc
 You should see:
 
 ```shell
-NAME                                   STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS   AGE
-data-conference-kafka-0                Bound    pvc-2c3ccdbe-a3a5-4ef1-a69a-2b1022818278   8Gi        RWO            standard       8m13s
-data-conference-postgresql-0           Bound    pvc-efd1a785-e363-462d-8447-3e48c768ae33   8Gi        RWO            standard       8m13s
-redis-data-conference-redis-master-0   Bound    pvc-5c2a96b1-b545-426d-b800-b8c71d073ca0   8Gi        RWO            standard       8m13s
+NAME                                       STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS   AGE
+conference-postgresql-1                    Bound    pvc-e97f17c6-59d3-4d3e-a433-78dab19ccac5   1Gi        RWO            standard       14m
+conference-redis                           Bound    pvc-30a8d528-1d05-4687-9494-5ccde4c06de7   1Gi        RWO            standard       14m
+data-0-conference-conference-dual-role-0   Bound    pvc-5c8770ba-95d8-4039-9c84-eed6becc7135   1Gi        RWO            standard       14m
 ```
 
-And then delete with: 
+The CloudNativePG and Strimzi operators delete their own PVCs when the `Cluster` and `Kafka` resources are deleted with the release (the chart sets Strimzi's `deleteClaim: true`). The Valkey PVC is kept by `helm uninstall`; delete it with: 
 ```shell
-kubectl delete pvc  data-conference-kafka-0 data-conference-postgresql-0 redis-data-conference-redis-master-0
+kubectl delete pvc conference-redis
 ```
 
 The name of the PVCs will change based on the Helm Release name that you used when installing the chart.

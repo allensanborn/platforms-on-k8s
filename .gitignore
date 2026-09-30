@@ -26,3 +26,4 @@ go.work
 
 # Ignoring vscode
 .vscode
+.scratch/
