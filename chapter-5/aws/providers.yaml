@@ -1,0 +1,21 @@
+# provider-upjet-aws family providers for the services these Compositions use.
+apiVersion: pkg.crossplane.io/v1
+kind: Provider
+metadata:
+  name: provider-aws-elasticache
+spec:
+  package: xpkg.crossplane.io/crossplane-contrib/provider-aws-elasticache:v2.8.1
+---
+apiVersion: pkg.crossplane.io/v1
+kind: Provider
+metadata:
+  name: provider-aws-rds
+spec:
+  package: xpkg.crossplane.io/crossplane-contrib/provider-aws-rds:v2.8.1
+---
+apiVersion: pkg.crossplane.io/v1
+kind: Provider
+metadata:
+  name: provider-aws-kafka
+spec:
+  package: xpkg.crossplane.io/crossplane-contrib/provider-aws-kafka:v2.8.1

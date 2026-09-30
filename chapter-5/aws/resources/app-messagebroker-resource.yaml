@@ -1,8 +1,9 @@
-apiVersion: apiextensions.crossplane.io/v1
+apiVersion: apiextensions.crossplane.io/v2
 kind: CompositeResourceDefinition
 metadata:
   name: messagebrokers.salaboy.com
 spec:
+  scope: Namespaced
   group: salaboy.com
   names:
     kind: MessageBroker
@@ -15,7 +16,7 @@ spec:
     - jsonPath: .spec.parameters.size
       name: SIZE
       type: string
-    - jsonPath: .spec.compositionSelector.matchLabels.kind
+    - jsonPath: .spec.crossplane.compositionSelector.matchLabels.kind
       name: KIND
       type: string
     name: v1alpha1
@@ -27,13 +28,14 @@ spec:
         properties:
           spec:
             type: object
-            properties: 
-              parameters: 
+            properties:
+              parameters:
                 type: object
                 properties:
                   size:
-                    type: string 
-                required:   
+                    type: string
+                    enum: ["small", "medium", "large"]
+                required:
                 - size
-            required: 
-            - parameters     
+            required:
+            - parameters

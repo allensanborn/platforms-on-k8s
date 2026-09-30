@@ -10,6 +10,9 @@ _🌍 Available in_: [English](README.md) | [中文 (Chinese)](README-zh.md) | [
 
 In this step-by-step tutorial, we will use Crossplane to Provision Redis, PostgreSQL, and Kafka in AWS.
 
+> [!Warning]
+> **Updated for Crossplane v2 but UNTESTED against AWS.** The Compositions now use `mode: Pipeline` with `function-patch-and-transform` and provider-upjet-aws's namespaced managed resources (`elasticache.aws.m.upbound.io`, `rds.aws.m.upbound.io`, `kafka.aws.m.upbound.io`, all `v1beta1`). They were rendered with `crossplane render` and schema-checked with `crossplane resource validate` against the v2.8.1 CRDs, but never applied to an AWS account. The community `crossplane/provider-aws` the original used is archived. MSK (Kafka) also needs client subnets and a security group, which the original omitted; the Composition selects them by the label `platform.salaboy.com/msk: "true"`, so you must create or label them yourself.
+
 ## Installing Crossplane
 
 To install Crossplane, you need to have a Kubernetes Cluster; you can create one using KinD as we did for you [Chapter 2](../../chapter-2/README.md#creating-a-local-cluster-with-kubernetes-kind). 
@@ -20,27 +23,15 @@ Let's install [Crossplane](https://crossplane.io) into its own namespace using H
 helm repo add crossplane-stable https://charts.crossplane.io/stable
 helm repo update
 
-helm install crossplane --namespace crossplane-system --create-namespace crossplane-stable/crossplane --wait
+helm install crossplane --namespace crossplane-system --create-namespace crossplane-stable/crossplane --version 2.4.2 --wait
 ```
 
-Install the `kubectl crossplane` plugin: 
+Install the composition function and the AWS family providers for ElastiCache, RDS and MSK: 
 
 ```shell
-curl -sL https://raw.githubusercontent.com/crossplane/crossplane/master/install.sh | sh
-sudo mv kubectl-crossplane /usr/local/bin
-```
-
-Then install the Crossplane AWS provider: 
-```shell
-kubectl crossplane install provider crossplane/provider-aws:v0.21.2
-```
-
-After a few seconds, if you check the configured providers, you should see the Helm `INSTALLED` and `HEALTHY`: 
-
-```shell
-> kubectl get providers.pkg.crossplane.io
-NAME                             INSTALLED   HEALTHY   PACKAGE                               AGE
-crossplane-provider-aws         True        True      crossplane/provider-aws:v0.21.2       49s
+kubectl apply -f ../crossplane/functions.yaml
+kubectl apply -f providers.yaml
+kubectl wait providers --all --for=condition=Healthy --timeout=600s
 ```
 
 Now we are ready to install our Databases and Message Brokers Crossplane compositions to provision all the components our application needs to work.
@@ -50,6 +41,8 @@ Now we are ready to install our Databases and Message Brokers Crossplane composi
 We need to install our Crossplane Compositions for our Key-Value Database (Redis), our SQL Database (PostgreSQL) and our Message Broker(Kafka). 
 
 ```shell
+kubectl apply -f resources/app-database-resource.yaml -f resources/app-messagebroker-resource.yaml
+kubectl wait xrd --all --for=condition=Established --timeout=120s
 kubectl apply -f resources/
 ```
 
@@ -74,12 +67,12 @@ generic aws-secret \
 --from-file=creds=./aws-credentials.txt
 ```
 
-Create a ProviderConfig 
+Create a `ClusterProviderConfig`, which the namespaced managed resources reference: 
 
 ```shell
 cat <<EOF | kubectl apply -f -
-apiVersion: aws.upbound.io/v1beta1
-kind: ProviderConfig
+apiVersion: aws.m.upbound.io/v1beta1
+kind: ClusterProviderConfig
 metadata:
   name: default
 spec:
@@ -97,10 +90,13 @@ EOF
 We can provision a new Key-Value Database for our team to use by executing the following commands to create all the infrastructure necessary: 
 
 ```shell
-kubectl apply -f my-db-keyvalue.yaml
-kubectl apply -f my-db-sql.yaml
+kubectl create namespace team-a
+kubectl apply -f aws-db-keyvalue.yaml
+kubectl apply -f aws-db-sql.yaml
 kubectl apply -f aws-messagebroker-kafka.yaml
 ```
+
+Each managed resource writes its connection details to a Secret in `team-a`: `aws-db-keyvalue-redis-connection`, `aws-db-sql-postgres-connection` (plus the generated password in `aws-db-sql-postgres-password`, key `password`) and `aws-mb-kafka-kafka-connection`. The exact keys in these Secrets were not checked; inspect them before filling in `app-values.yaml`.
 
 ## Let's deploy our Conference Application
 
@@ -109,7 +105,7 @@ Ok, now that we have our two databases and our message broker running, we need t
 For that, we will use the `app-values.yaml` file containing the configurations for the services to connect to our newly created databases:
 
 ```shell
-helm install conference oci://registry-1.docker.io/salaboy/conference-app --version v1.0.0 -f app-values.yaml
+helm install conference ../../conference-application/helm/conference-app -n team-a -f app-values.yaml
 ```
 
 Make sure to fill in the commented out aspects of the yaml file based off values from newly created AWS infrastructure.

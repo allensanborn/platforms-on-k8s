@@ -1,3 +1,5 @@
+# Crossplane v2 + provider-upjet-aws namespaced managed resources (*.aws.m.upbound.io).
+# UNTESTED against AWS: converted syntactically and schema-checked with `crossplane beta validate`.
 apiVersion: apiextensions.crossplane.io/v1
 kind: Composition
 metadata:
@@ -7,45 +9,57 @@ metadata:
     provider: aws
     kind: sql
 spec:
-  writeConnectionSecretsToNamespace: crossplane-system
   compositeTypeRef:
     apiVersion: salaboy.com/v1alpha1
     kind: Database
-  resources:  
-    - name: rdsinstance
-      base:
-        apiVersion: database.aws.crossplane.io/v1beta1
-        kind: RDSInstance
-        metadata:
-          annotations:
-            crossplane.io/external-name: # patched
-        spec:
-          providerConfigRef:
-            name: default
-          forProvider:
-            region: us-west-2
-            allocatedStorage: 5
-            dbInstanceClass: db.t3.micro
-            engine: postgres
-            engineVersion: "13"
-            masterUsername: salaboy
-            port: 5432
-          writeConnectionSecretToRef:
-            namespace: crossplane-system
-            name: postgresql
-      patches:
-        - fromFieldPath: metadata.name
-          toFieldPath: metadata.annotations[crossplane.io/external-name]
-          policy:
-            fromFieldPath: Required
+  mode: Pipeline
+  pipeline:
+  - step: patch-and-transform
+    functionRef:
+      name: function-patch-and-transform
+    input:
+      apiVersion: pt.fn.crossplane.io/v1beta1
+      kind: Resources
+      resources:
+      - name: rdsinstance
+        base:
+          apiVersion: rds.aws.m.upbound.io/v1beta1
+          kind: Instance
+          spec:
+            forProvider:
+              region: us-west-2
+              allocatedStorage: 5
+              instanceClass: db.t3.micro
+              engine: postgres
+              engineVersion: "17"
+              username: postgres        # c4p-service connects as postgres to the postgres DB
+              autoGeneratePassword: true
+              passwordSecretRef:
+                key: password           # name patched to <xr>-postgres-password
+                name: ""
+              skipFinalSnapshot: true
+            providerConfigRef:
+              kind: ClusterProviderConfig
+              name: default
+        patches:
         - fromFieldPath: metadata.name
           toFieldPath: metadata.name
           transforms:
-            - type: string
-              string:
-                fmt: "%s-postgres"
-      connectionDetails:
-        - fromConnectionSecretKey: username
-        - fromConnectionSecretKey: password
-        - fromConnectionSecretKey: endpoint
-        - fromConnectionSecretKey: port
+          - type: string
+            string:
+              type: Format
+              fmt: "%s-postgres"
+        - fromFieldPath: metadata.name
+          toFieldPath: spec.forProvider.passwordSecretRef.name
+          transforms:
+          - type: string
+            string:
+              type: Format
+              fmt: "%s-postgres-password"
+        - fromFieldPath: metadata.name
+          toFieldPath: spec.writeConnectionSecretToRef.name
+          transforms:
+          - type: string
+            string:
+              type: Format
+              fmt: "%s-postgres-connection"

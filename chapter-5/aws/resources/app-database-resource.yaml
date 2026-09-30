@@ -1,8 +1,9 @@
-apiVersion: apiextensions.crossplane.io/v1
+apiVersion: apiextensions.crossplane.io/v2
 kind: CompositeResourceDefinition
 metadata:
   name: databases.salaboy.com
 spec:
+  scope: Namespaced
   group: salaboy.com
   names:
     kind: Database
@@ -17,8 +18,8 @@ spec:
       type: string
     - jsonPath: .spec.parameters.mockData
       name: MOCKDATA
-      type: boolean  
-    - jsonPath: .spec.compositionSelector.matchLabels.kind
+      type: boolean
+    - jsonPath: .spec.crossplane.compositionSelector.matchLabels.kind
       name: KIND
       type: string
     name: v1alpha1
@@ -30,15 +31,16 @@ spec:
         properties:
           spec:
             type: object
-            properties: 
-              parameters: 
+            properties:
+              parameters:
                 type: object
                 properties:
                   size:
-                    type: string 
-                  mockData: 
+                    type: string
+                    enum: ["small", "medium", "large"]
+                  mockData:
                     type: boolean
-                required:   
+                required:
                 - size
-            required: 
-            - parameters     
+            required:
+            - parameters

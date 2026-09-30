@@ -8,13 +8,14 @@ agenda:
     url: #aws-kafka-endpoint
   redis: 
     host: #aws-redis-endpoint
-    secretName: #aws-redis-password
+    # ElastiCache without auth: leave secretName unset
 c4p: 
   kafka:
     url: #aws-kafka-endpoint
   postgresql:
     host: #aws-psql-endpoint
-    secretName: #aws-psql-secret
+    secretName: aws-db-sql-postgres-password
+    secretKey: password
 
 notifications: 
   kafka:
