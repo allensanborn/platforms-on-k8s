@@ -1,0 +1,48 @@
+# Redis-compatible Valkey for the Knative examples (replaces the Bitnami redis chart).
+# Host: redis:6379, password in Secret redis/redis-password
+apiVersion: v1
+kind: Secret
+metadata:
+  name: redis
+type: Opaque
+stringData:
+  redis-password: redis
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: redis
+spec:
+  selector:
+    matchLabels:
+      app: redis
+  template:
+    metadata:
+      labels:
+        app: redis
+    spec:
+      containers:
+      - name: valkey
+        image: docker.io/valkey/valkey:9.1.2
+        args: ["--requirepass", "$(REDIS_PASSWORD)"]
+        env:
+        - name: REDIS_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: redis
+              key: redis-password
+        ports:
+        - containerPort: 6379
+        readinessProbe:
+          tcpSocket:
+            port: 6379
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis
+spec:
+  selector:
+    app: redis
+  ports:
+  - port: 6379

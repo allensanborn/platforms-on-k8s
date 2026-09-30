@@ -17,11 +17,14 @@ Once you have the cluster, we can install Argo Rollouts by running:
 
 ```shell
 kubectl create namespace argo-rollouts
-kubectl apply -n argo-rollouts -f https://github.com/argoproj/argo-rollouts/releases/latest/download/install.yaml
+kubectl apply --server-side -n argo-rollouts -f https://github.com/argoproj/argo-rollouts/releases/latest/download/install.yaml
 
 ```
 
 or by following the [official documentation that you can find here](https://argoproj.github.io/argo-rollouts/installation/#controller-installation).
+
+> [!Note]
+> Updated September 2026: `--server-side` is needed because the Rollout and AnalysisRun CRDs (v1.10.0) are too large for client-side apply ([F035](../../docs/findings/F035-argo-rollouts-client-side-apply.md)). Kafka now comes from Strimzi instead of Bitnami's chart. If you ran the Knative tutorial on the same cluster, delete its `notifications-service` Knative Service first, because both tutorials create a Kubernetes Service with that name.
 
 You also need to install the [Argo Rollouts `kubectl` plugin](https://argoproj.github.io/argo-rollouts/installation/#kubectl-plugin-installation) 
 
@@ -68,7 +71,7 @@ spec:
         image: salaboy/notifications-service-0e27884e01429ab7e350cb5dff61b525:v1.0.0
         env: 
           - name: KAFKA_URL
-            value: kafka.default.svc.cluster.local
+            value: kafka-kafka-bootstrap.default.svc.cluster.local
           ... 
         ports:
         - name: http
@@ -103,7 +106,11 @@ First, it will set the traffic split to 25 percent and wait for the team to test
 Before applying the Rollout, Service, and Ingress resources located in the `canary-release/` directory, let's install Kafka for the Notification Service to connect. 
 
 ```shell
-helm install kafka oci://registry-1.docker.io/bitnamicharts/kafka --version 22.1.5 --set "provisioning.topics[0].name=events-topic" --set "provisioning.topics[0].partitions=1" --set "persistence.size=1Gi" 
+helm upgrade --install strimzi oci://quay.io/strimzi-helm/strimzi-kafka-operator \
+  --version 1.2.0 --namespace strimzi --create-namespace \
+  --set watchAnyNamespace=true --wait
+kubectl apply -f ../knative/infrastructure/kafka.yaml
+kubectl wait kafka/kafka --for=condition=Ready --timeout=600s
 
 ```
 
@@ -372,7 +379,7 @@ spec:
         image: salaboy/notifications-service-0e27884e01429ab7e350cb5dff61b525:v1.0.0
         env: 
           - name: KAFKA_URL
-            value: kafka.default.svc.cluster.local
+            value: kafka-kafka-bootstrap.default.svc.cluster.local
           ..
   strategy:
     blueGreen: 

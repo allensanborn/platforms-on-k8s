@@ -120,11 +120,17 @@ Knative Serving simplifies and extends the capabilities offered by Kubernetes by
 
 Knative Services also expose a simplified configuration that resembles a Containers-as-a-Service model like Google Cloud Run, Azure Container Apps, and AWS App Runner, whereby defining which container we want to run, the platform will take care of the rest (no complex configurations for networking, routing traffic, etc). 
 
-Because the Notifications Service uses Kafka for emitting events, we need to install Kafka using Helm:
+Because the Notifications Service uses Kafka for emitting events, we need to install Kafka. The book used Bitnami's Kafka chart, whose images are no longer published; this fork uses the Strimzi operator and a single-node Kafka instead:
 
 ```shell
-helm install kafka oci://registry-1.docker.io/bitnamicharts/kafka --version 22.1.5 --set "provisioning.topics[0].name=events-topic" --set "provisioning.topics[0].partitions=1" --set "persistence.size=1Gi" 
+helm upgrade --install strimzi oci://quay.io/strimzi-helm/strimzi-kafka-operator \
+  --version 1.2.0 --namespace strimzi --create-namespace \
+  --set watchAnyNamespace=true --wait
+kubectl apply -f knative/infrastructure/kafka.yaml
+kubectl wait kafka/kafka --for=condition=Ready --timeout=600s
 ```
+
+Kafka's bootstrap address is `kafka-kafka-bootstrap.default.svc.cluster.local:9092`.
 
 Check that Kafka is running before proceeding, as it usually takes a bit of time to fetch the Kafka Container image and start it. 
 
@@ -207,21 +213,24 @@ To recap, we get two things out of the box with Knative Serving:
 
 In this section we will look into implementing different release strategies for our Conference Application, for that we will be deploying all the other application services also using Knative Services. 
 
-Before installing the other services we need to set up PostgreSQL and Redis, as we already installed Kafka before. Before installing PostgreSQL we need to create a ConfigMap containing the SQL statement and create the `Proposals` Table, so the Helm Chart can reference the configMap and execute the statement when the database instance is started.
+Before installing the other services we need to set up PostgreSQL and Redis, as we already installed Kafka before. Before installing PostgreSQL we need to create a ConfigMap containing the SQL statement and create the `Proposals` Table, so the database can execute the statement when it is created. PostgreSQL now runs as a [CloudNativePG](https://cloudnative-pg.io) `Cluster` and Redis as a [Valkey](https://valkey.io) `Deployment`, both replacing Bitnami charts.
 
 ```shell
 kubectl apply -f knative/c4p-sql-init.yaml
 ```
 
 ```shell
-helm install postgresql oci://registry-1.docker.io/bitnamicharts/postgresql --version 12.5.7 --set "image.debug=true" --set "primary.initdb.user=postgres" --set "primary.initdb.password=postgres" --set "primary.initdb.scriptsConfigMap=c4p-init-sql" --set "global.postgresql.auth.postgresPassword=postgres" --set "primary.persistence.size=1Gi"
-
+helm upgrade --install cnpg cloudnative-pg \
+  --repo https://cloudnative-pg.github.io/charts --version 0.29.1 \
+  --namespace cnpg-system --create-namespace --wait
+kubectl apply -f knative/infrastructure/postgresql.yaml
+kubectl wait cluster.postgresql.cnpg.io/postgresql --for=condition=Ready --timeout=300s
 ```
 
 and Redis: 
 
 ```shell
-helm install redis oci://registry-1.docker.io/bitnamicharts/redis --version 17.11.3 --set "architecture=standalone" --set "master.persistence.size=1Gi"
+kubectl apply -f knative/infrastructure/redis.yaml
 ```
 
 Now we can install all the other services (frontend, c4p-service, and agenda-service) by running: 
@@ -249,10 +258,11 @@ At this point the application should work as expected, with a small difference, 
 > kubectl get pods 
 NAME                                                     READY   STATUS    RESTARTS   AGE
 frontend-00002-deployment-7fdfb7b8c5-cw67t               2/2     Running   0          60s
-kafka-0                                                  1/1     Running   0          20m
+kafka-entity-operator-5655c8cbf6-cj7mw                   1/1     Running   0          20m
+kafka-kafka-dual-role-0                                  1/1     Running   0          20m
 notifications-service-00002-deployment-c5787bc49-flcc9   2/2     Running   0          60s
-postgresql-0                                             1/1     Running   0          9m23s
-redis-master-0                                           1/1     Running   0          8m50s
+postgresql-1                                             1/1     Running   0          9m23s
+redis-755686c5-z5tgq                                     1/1     Running   0          8m50s
 ```
 
 Because the Agenda and C4P service are storing state into persistent storage (Redis and PostgreSQL) data is not lost when the service instance is downscaled. But the Notifications and Frontend services are keeping in-memory data (Notifications and consumed Events), hence we have configured our Knative service to keep at least one instance alive all the time. All the in-memory state kept like this will impact how the application can scale, but remember this is just a Walking Skeleton. 

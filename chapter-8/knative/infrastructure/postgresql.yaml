@@ -1,0 +1,28 @@
+# PostgreSQL for the Knative examples (replaces the Bitnami postgresql chart).
+# Needs the CloudNativePG operator and ../c4p-sql-init.yaml. Host: postgresql-rw, Secret postgresql-superuser/password
+apiVersion: v1
+kind: Secret
+metadata:
+  name: postgresql-superuser
+type: kubernetes.io/basic-auth
+stringData:
+  username: postgres
+  password: postgres
+---
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: postgresql
+spec:
+  instances: 1
+  enableSuperuserAccess: true
+  superuserSecret:
+    name: postgresql-superuser
+  bootstrap:
+    initdb:
+      postInitSQLRefs:
+        configMapRefs:
+        - name: c4p-init-sql
+          key: init.sql
+  storage:
+    size: 1Gi

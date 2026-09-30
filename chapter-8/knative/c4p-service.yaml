@@ -9,14 +9,14 @@ spec:
         - image: salaboy/c4p-service-a3dc0474cbfa348afcdf47a8eee70ba9:v1.0.0
           env:
           - name: KAFKA_URL
-            value: kafka.default.svc.cluster.local
+            value: kafka-kafka-bootstrap.default.svc.cluster.local
           - name: POSTGRES_HOST
-            value: postgresql.default.svc.cluster.local
+            value: postgresql-rw.default.svc.cluster.local
           - name: POSTGRES_PASSWORD
             valueFrom:
               secretKeyRef:
-                name: postgresql
-                key: postgres-password   
+                name: postgresql-superuser
+                key: password
           - name: AGENDA_SERVICE_URL
             value: http://agenda-service.default.svc.cluster.local
           - name: NOTIFICATIONS_SERVICE_URL

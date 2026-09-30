@@ -12,7 +12,7 @@ spec:
         - image: salaboy/frontend-go-1739aa83b5e69d4ccb8a5615830ae66c:v1.0.0
           env:
           - name: KAFKA_URL
-            value: kafka.default.svc.cluster.local
+            value: kafka-kafka-bootstrap.default.svc.cluster.local
           - name: AGENDA_SERVICE_URL
             value: http://agenda-service.default.svc.cluster.local
           - name: C4P_SERVICE_URL
