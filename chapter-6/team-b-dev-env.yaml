@@ -2,10 +2,11 @@ apiVersion: salaboy.com/v1alpha1
 kind: Environment
 metadata:
   name: team-b-dev-env
+  namespace: team-b
 spec:
-  compositionSelector:
-    matchLabels:
-      type: development
-  parameters: 
+  crossplane:
+    compositionSelector:
+      matchLabels:
+        type: development
+  parameters:
     installInfra: false
-    

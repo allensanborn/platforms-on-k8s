@@ -1,11 +1,9 @@
-apiVersion: helm.crossplane.io/v1beta1
-kind: ProviderConfig
+# provider-helm v1.x: namespaced Releases (helm.m.crossplane.io) reference either a
+# namespaced ProviderConfig or this cluster-wide one, which installs into the host cluster.
+apiVersion: helm.m.crossplane.io/v1beta1
+kind: ClusterProviderConfig
 metadata:
   name: default
 spec:
   credentials:
     source: InjectedIdentity
-
----
-# SA=$(kubectl -n crossplane-system get sa -o name | grep provider-helm | sed -e 's|serviceaccount\/|crossplane-system:|g')
-# kubectl create clusterrolebinding provider-helm-admin-binding --clusterrole cluster-admin --serviceaccount="${SA}"

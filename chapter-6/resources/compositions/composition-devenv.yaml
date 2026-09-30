@@ -1,3 +1,6 @@
+# Crossplane v2: an Environment is namespaced. The vcluster runs in the team's
+# namespace, and everything inside it is installed through a namespaced Helm
+# ProviderConfig that reads the kubeconfig vcluster exports (Secret vc-<name>).
 apiVersion: apiextensions.crossplane.io/v1
 kind: Composition
 metadata:
@@ -5,136 +8,165 @@ metadata:
   labels:
     type: development
 spec:
-  writeConnectionSecretsToNamespace: crossplane-system
   compositeTypeRef:
     apiVersion: salaboy.com/v1alpha1
-    kind: XEnvironment
-  resources:
-    - name: vcluster-helm-release
-      base:
-        apiVersion: helm.crossplane.io/v1beta1
-        kind: Release
-        metadata:
-          annotations:
-            crossplane.io/external-name: # patched
-        spec:
-          rollbackLimit: 3
-          forProvider:
-            namespace: # patched
-            chart:
-              name: vcluster
-              repository: https://charts.loft.sh
-              version: "0.15.7"
-            values:
-              fallbackHostDns: true
-              multiNamespaceMode:
-                enabled: true
-              sync:
-                #used for plugins
-              syncer:
-                extraArgs: [] # patched
-              #     - --out-kube-config-server=https://cluster-1.cluster-1.svc
-          providerConfigRef:
-            name: default
-      patches:
-        - fromFieldPath: metadata.name
-          toFieldPath: spec.forProvider.namespace
-          policy:
-            fromFieldPath: Required
-        - fromFieldPath: metadata.name
-          toFieldPath: metadata.annotations[crossplane.io/external-name]
-          policy:
-            fromFieldPath: Required
+    kind: Environment
+  mode: Pipeline
+  pipeline:
+  - step: patch-and-transform
+    functionRef:
+      name: function-patch-and-transform
+    input:
+      apiVersion: pt.fn.crossplane.io/v1beta1
+      kind: Resources
+      resources:
+      - name: vcluster
+        base:
+          apiVersion: helm.m.crossplane.io/v1beta1
+          kind: Release
+          spec:
+            rollbackLimit: 3
+            forProvider:
+              chart:
+                name: vcluster
+                repository: https://charts.loft.sh
+                version: "0.37.2"
+              values:
+                exportKubeConfig:
+                  server: ""   # patched to https://<name>.<namespace>.svc:443
+            providerConfigRef:
+              kind: ClusterProviderConfig
+              name: default
+        patches:
         - fromFieldPath: metadata.name
           toFieldPath: metadata.name
-          transforms:
-            - type: string
-              string:
-                fmt: "%s-vcluster"
+        - fromFieldPath: metadata.namespace
+          toFieldPath: spec.forProvider.namespace
         - type: CombineFromComposite
           combine:
             variables:
             - fromFieldPath: metadata.name
+            - fromFieldPath: metadata.namespace
             strategy: string
             string:
-              fmt: "--out-kube-config-secret=%s-secret"
-          toFieldPath: spec.forProvider.values.syncer.extraArgs[0]
-        - type: CombineFromComposite
-          combine:
-            variables:
-            - fromFieldPath: metadata.name
-            - fromFieldPath: metadata.name
-            strategy: string
-            string:
-              fmt: "--out-kube-config-server=https://%s.%s.svc"
-          toFieldPath: spec.forProvider.values.syncer.extraArgs[1]
-        - type: CombineFromComposite
-          combine:
-            variables:
-            - fromFieldPath: metadata.name
-            - fromFieldPath: metadata.name
-            strategy: string
-            string:
-              fmt: "--tls-san=%s.%s.svc"
-          toFieldPath: spec.forProvider.values.syncer.extraArgs[2]    
-      readinessChecks:
-      - type: MatchString
-        fieldPath: status.atProvider.state
-        matchString: deployed
-    - name: helm-providerconfig
-      base:
-        apiVersion: helm.crossplane.io/v1alpha1
-        kind: ProviderConfig
-        spec:
-          credentials:
-            source: Secret
-            secretRef:
-              name: # patched
-              namespace: # patched
-              key: config
-      patches:
+              fmt: "https://%s.%s.svc:443"
+          toFieldPath: spec.forProvider.values.exportKubeConfig.server
+      - name: vcluster-provider-config
+        base:
+          apiVersion: helm.m.crossplane.io/v1beta1
+          kind: ProviderConfig
+          spec:
+            credentials:
+              source: Secret
+              secretRef:
+                key: config
+        patches:
+        - fromFieldPath: metadata.name
+          toFieldPath: metadata.name
         - fromFieldPath: metadata.name
           toFieldPath: spec.credentials.secretRef.name
           transforms:
-            - type: string
-              string:
-                fmt: vc-%s
-        - fromFieldPath: metadata.name
+          - type: string
+            string:
+              type: Format
+              fmt: "vc-%s"
+        - fromFieldPath: metadata.namespace
           toFieldPath: spec.credentials.secretRef.namespace
+        readinessChecks:
+        - type: None
+      # The Conference chart's infrastructure is operator-based, so the operators
+      # are installed inside the vcluster. They retry until the vcluster answers.
+      - name: cnpg-operator
+        base:
+          apiVersion: helm.m.crossplane.io/v1beta1
+          kind: Release
+          metadata:
+            annotations:
+              crossplane.io/external-name: cnpg
+          spec:
+            forProvider:
+              namespace: cnpg-system
+              wait: true
+              chart:
+                name: cloudnative-pg
+                repository: https://cloudnative-pg.github.io/charts
+                version: "0.29.1"
+            providerConfigRef:
+              kind: ProviderConfig
+        patches:
         - fromFieldPath: metadata.name
           toFieldPath: metadata.name
-      readinessChecks:
-      - type: None 
-    - name: app-chart-vcluster
-      base:
-        apiVersion: helm.crossplane.io/v1beta1
-        kind: Release
-        metadata:
-          annotations: 
-            crossplane.io/external-name: conference-app
-        spec:
-          forProvider:
-            chart:
-              name: conference-app
-              repository: oci://docker.io/salaboy
-              version: "v1.0.0"
-            values:
-              install:
-                infrastructure: #patched
-              services:
-                frontend: 
-                  debug: #patched  
-            namespace: default
-          providerConfigRef: 
-            name: #patched
-      patches:
+          transforms:
+          - type: string
+            string:
+              type: Format
+              fmt: "%s-cnpg"
+        - fromFieldPath: metadata.name
+          toFieldPath: spec.providerConfigRef.name
+      - name: strimzi-operator
+        base:
+          apiVersion: helm.m.crossplane.io/v1beta1
+          kind: Release
+          metadata:
+            annotations:
+              crossplane.io/external-name: strimzi
+          spec:
+            forProvider:
+              namespace: strimzi
+              wait: true
+              chart:
+                name: strimzi-kafka-operator
+                repository: oci://quay.io/strimzi-helm
+                version: "1.2.0"
+              values:
+                watchAnyNamespace: true
+            providerConfigRef:
+              kind: ProviderConfig
+        patches:
+        - fromFieldPath: metadata.name
+          toFieldPath: metadata.name
+          transforms:
+          - type: string
+            string:
+              type: Format
+              fmt: "%s-strimzi"
+        - fromFieldPath: metadata.name
+          toFieldPath: spec.providerConfigRef.name
+      - name: conference-app
+        base:
+          apiVersion: helm.m.crossplane.io/v1beta1
+          kind: Release
+          metadata:
+            annotations:
+              crossplane.io/external-name: conference
+          spec:
+            forProvider:
+              namespace: default
+              chart:
+                name: conference-app
+                # Packaged from conference-application/helm/conference-app on this fork's branch.
+                # The published oci://docker.io/salaboy/conference-app:v1.0.0 still uses Bitnami images.
+                url: https://raw.githubusercontent.com/allensanborn/platforms-on-k8s/crossplane-v2-and-bitnami-replacements/chapter-6/charts/conference-app-v1.1.0.tgz
+              values:
+                install:
+                  infrastructure: true   # patched
+                  ingress: false
+                services:
+                  frontend:
+                    debug: false         # patched
+            providerConfigRef:
+              kind: ProviderConfig
+        patches:
+        - fromFieldPath: metadata.name
+          toFieldPath: metadata.name
+          transforms:
+          - type: string
+            string:
+              type: Format
+              fmt: "%s-conference"
         - fromFieldPath: metadata.name
           toFieldPath: spec.providerConfigRef.name
         - fromFieldPath: spec.parameters.installInfra
-          toFieldPath: spec.forProvider.values.install.infrastructure  
+          toFieldPath: spec.forProvider.values.install.infrastructure
         - fromFieldPath: spec.parameters.frontend.debug
           toFieldPath: spec.forProvider.values.services.frontend.debug
-      readinessChecks:
-      - type: MatchString
-        fieldPath: status.atProvider.state
-        matchString: deployed    

@@ -2,14 +2,13 @@ apiVersion: salaboy.com/v1alpha1
 kind: Environment
 metadata:
   name: team-a-dev-env
+  namespace: team-a
 spec:
-  writeConnectionSecretToRef:
-    name: team-a-dev-env
-  compositionSelector:
-    matchLabels:
-      type: development
-  parameters: 
+  crossplane:
+    compositionSelector:
+      matchLabels:
+        type: development
+  parameters:
     installInfra: true
     frontend:
       debug: true
-    

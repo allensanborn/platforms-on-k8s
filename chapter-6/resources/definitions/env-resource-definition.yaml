@@ -1,36 +1,30 @@
-apiVersion: apiextensions.crossplane.io/v1
+apiVersion: apiextensions.crossplane.io/v2
 kind: CompositeResourceDefinition
 metadata:
-  name: xenvironments.salaboy.com
+  name: environments.salaboy.com
 spec:
+  scope: Namespaced
   group: salaboy.com
   names:
-    kind: XEnvironment
-    plural: xenvironments
-    shortNames:
-      - "xenv"
-      - "xenvs"
-  claimNames:
     kind: Environment
-    plural: environments 
+    plural: environments
     shortNames:
       - "env"
-      - "envs"   
+      - "envs"
   versions:
   - additionalPrinterColumns:
-    - jsonPath: .spec.resourceRef.name
+    - jsonPath: .metadata.name
       name: CONNECT-TO
       type: string
-    - jsonPath: .spec.compositionSelector.matchLabels.type
+    - jsonPath: .spec.crossplane.compositionSelector.matchLabels.type
       name: TYPE
-      type: string  
+      type: string
     - jsonPath: .spec.parameters.installInfra
       name: INFRA
       type: boolean
     - jsonPath: .spec.parameters.frontend.debug
       name: DEBUG
       type: boolean
-        
     name: v1alpha1
     served: true
     referenceable: true
@@ -40,20 +34,18 @@ spec:
         properties:
           spec:
             type: object
-            properties: 
-              parameters: 
+            properties:
+              parameters:
                 type: object
                 properties:
                   installInfra:
-                    type: boolean 
+                    type: boolean
+                    default: true
                   frontend:
                     type: object
-                    properties: 
-                      debug: 
-                        type: boolean            
-                required:   
-            required: 
-            - parameters          
-
-     
-            
+                    properties:
+                      debug:
+                        type: boolean
+                        default: false
+            required:
+            - parameters
