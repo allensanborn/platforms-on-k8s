@@ -20,8 +20,12 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 )
 
+// buildVersion is reported by /service/info unless VERSION is set; the publish
+// script sets it with -ldflags "-X main.buildVersion=<version>".
+var buildVersion = "1.0.0"
+
 var (
-	Version           = getEnv("VERSION", "1.0.0")
+	Version           = getEnv("VERSION", buildVersion)
 	Source            = getEnv("SOURCE", "https://github.com/salaboy/platforms-on-k8s/tree/main/conference-admin/admin-go")
 	PodName           = getEnv("POD_NAME", "N/A")
 	PodNamespace      = getEnv("POD_NAMESPACE", "N/A")
@@ -30,7 +34,9 @@ var (
 	PodServiceAccount = getEnv("POD_SERVICE_ACCOUNT", "N/A")
 	AppPort           = getEnv("APP_PORT", "8080")
 	KoDataPath        = getEnv("KO_DATA_PATH", "kodata")
-	kubeconfig        string
+	// Environments are namespaced XRs in Crossplane v2; the admin works on one namespace.
+	EnvironmentNamespace = getEnv("ENVIRONMENT_NAMESPACE", "default")
+	kubeconfig           string
 )
 
 const (
@@ -66,10 +72,10 @@ type ServiceInfo struct {
 
 func init() {
 	flag.StringVar(&kubeconfig, "kubeconfig", "", "path to Kubernetes config file")
-	flag.Parse()
 }
 
 func main() {
+	flag.Parse() // parsed here rather than in init() so `go test` flags don't break
 	r := NewChiServer()
 
 	// Start the server; this is a blocking call
@@ -134,9 +140,12 @@ type server struct {
 
 // ListEnvironments returns a list of Environments.
 func (s *server) ListEnvironments(w http.ResponseWriter, r *http.Request) {
-	environments, err := s.ClientSet.Environments("default").List(metav1.ListOptions{})
+	environments, err := s.ClientSet.Environments(EnvironmentNamespace).List(metav1.ListOptions{})
 	if err != nil {
 		panic(any(err))
+	}
+	for i := range environments.Items {
+		withV1Fields(&environments.Items[i])
 	}
 
 	fmt.Printf("environments found: %+v\n", environments)
@@ -157,15 +166,18 @@ func (s *server) CreateEnvironment(w http.ResponseWriter, r *http.Request) {
 
 	fullEnv := &v1alpha1.Environment{
 		ObjectMeta: metav1.ObjectMeta{
-			Name: env.Name,
+			Name:      env.Name,
+			Namespace: EnvironmentNamespace,
 		},
 		Spec: v1alpha1.EnvironmentSpec{
 			WriteConnectionSecretToRef: v1alpha1.WriteConnectionSecretToRef{
 				Name: env.Name,
 			},
-			CompositionSelector: v1alpha1.CompositionSelector{
-				MatchLabels: map[string]string{
-					"type": env.Parameters.Type,
+			Crossplane: v1alpha1.Crossplane{
+				CompositionSelector: v1alpha1.CompositionSelector{
+					MatchLabels: map[string]string{
+						"type": env.Parameters.Type,
+					},
 				},
 			},
 			Parameters: v1alpha1.Parameters{
@@ -176,7 +188,7 @@ func (s *server) CreateEnvironment(w http.ResponseWriter, r *http.Request) {
 			},
 		},
 	}
-	result, err := s.ClientSet.Environments("default").Create(fullEnv)
+	result, err := s.ClientSet.Environments(EnvironmentNamespace).Create(fullEnv)
 	if err != nil {
 		panic(any(err))
 	}
@@ -184,9 +196,30 @@ func (s *server) CreateEnvironment(w http.ResponseWriter, r *http.Request) {
 	respondWithJSON(w, http.StatusOK, result)
 }
 
+// withV1Fields fills in the v1 fields the admin UI reads (spec.compositionSelector,
+// spec.resourceRef, spec.writeConnectionSecretToRef, conditions ordered Synced, Ready)
+// from a Crossplane v2 Environment, so the UI didn't need rebuilding.
+func withV1Fields(env *v1alpha1.Environment) {
+	if len(env.Spec.CompositionSelector.MatchLabels) == 0 {
+		env.Spec.CompositionSelector = env.Spec.Crossplane.CompositionSelector
+	}
+	env.Spec.ResourceRef = &v1alpha1.ResourceRef{Name: env.Name} // the vcluster is named after the Environment
+	env.Spec.WriteConnectionSecretToRef.Name = "vc-" + env.Name  // vcluster's kubeconfig Secret
+	ordered := []v1alpha1.Condition{{Type: "Synced", Status: "Unknown"}, {Type: "Ready", Status: "Unknown"}}
+	for _, c := range env.Status.Conditions {
+		switch c.Type {
+		case "Synced":
+			ordered[0] = c
+		case "Ready":
+			ordered[1] = c
+		}
+	}
+	env.Status.Conditions = ordered
+}
+
 // DeleteEnvironment deletes an environment.
 func (s *server) DeleteEnvironment(w http.ResponseWriter, r *http.Request, id string) {
-	err := s.ClientSet.Environments("default").Delete(id, metav1.DeleteOptions{})
+	err := s.ClientSet.Environments(EnvironmentNamespace).Delete(id, metav1.DeleteOptions{})
 	if err != nil {
 		panic(any(err))
 	}

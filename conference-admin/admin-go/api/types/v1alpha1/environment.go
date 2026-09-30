@@ -35,7 +35,16 @@ type ResourceRef struct {
 	Name string `json:"name,omitempty"`
 }
 
+// Crossplane holds the fields Crossplane v2 keeps under spec.crossplane.
+type Crossplane struct {
+	CompositionSelector CompositionSelector `json:"compositionSelector"`
+}
+
+// EnvironmentSpec: Crossplane v2 namespaced Environment. CompositionSelector,
+// WriteConnectionSecretToRef and ResourceRef are the v1 (claim) fields; the API
+// server prunes them on write, and the admin API fills them in on read for the UI.
 type EnvironmentSpec struct {
+	Crossplane                 Crossplane                 `json:"crossplane"`
 	WriteConnectionSecretToRef WriteConnectionSecretToRef `json:"writeConnectionSecretToRef,omitempty"`
 	Parameters                 Parameters                 `json:"parameters"`
 	CompositionSelector        CompositionSelector        `json:"compositionSelector,omitempty"`

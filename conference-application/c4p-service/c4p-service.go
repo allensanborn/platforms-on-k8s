@@ -20,6 +20,10 @@ import (
 	kafka "github.com/segmentio/kafka-go"
 )
 
+// buildVersion is reported by /service/info unless VERSION is set; the publish
+// script sets it with -ldflags "-X main.buildVersion=<version>".
+var buildVersion = "1.0.0"
+
 const (
 	ApplicationJson = "application/json"
 	ContentType     = "Content-Type"
@@ -98,7 +102,7 @@ type Config struct {
 }
 
 var (
-	Version            = getEnv("VERSION", "1.0.0")
+	Version            = getEnv("VERSION", buildVersion)
 	Source             = getEnv("SOURCE", "https://github.com/salaboy/platforms-on-k8s/tree/main/conference-application/c4p-service")
 	PodName            = getEnv("POD_NAME", "N/A")
 	PodNamespace       = getEnv("POD_NAMESPACE", "N/A")

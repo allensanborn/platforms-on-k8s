@@ -18,9 +18,13 @@ import (
 	kafka "github.com/segmentio/kafka-go"
 )
 
+// buildVersion is reported by /service/info unless VERSION is set; the publish
+// script sets it with -ldflags "-X main.buildVersion=<version>".
+var buildVersion = "1.0.0"
+
 var (
 	KEY                 = "AGENDAITEMS"
-	VERSION             = getEnv("VERSION", "1.0.0")
+	VERSION             = getEnv("VERSION", buildVersion)
 	SOURCE              = getEnv("SOURCE", "https://github.com/salaboy/platforms-on-k8s/tree/main/conference-application/agenda-service")
 	POD_NAME            = getEnv("POD_NAME", "N/A")
 	POD_NAMESPACE       = getEnv("POD_NAMESPACE", "N/A")

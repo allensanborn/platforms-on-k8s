@@ -1,4 +1,6 @@
-registry: salaboy
+registry: ghcr.io/allensanborn
 image: admin-go-4b1308c49d6627e0dc7e3ffd57f155cc
-tag: v1.0.0
-
+tag: v1.2.0
+# Namespace whose (Crossplane v2, namespaced) Environments the admin lists and creates.
+# Defaults to the release namespace.
+environmentNamespace: ""

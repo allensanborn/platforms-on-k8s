@@ -18,6 +18,8 @@ spec:
         image: "{{ .Values.registry }}/{{ .Values.image }}:{{ .Values.tag }}"
         imagePullPolicy: Always  
         env: 
+        - name: ENVIRONMENT_NAMESPACE
+          value: {{ .Values.environmentNamespace | default .Release.Namespace | quote }}
         - name: POD_NODENAME
           valueFrom:
             fieldRef:
@@ -97,7 +99,7 @@ metadata:
 subjects:
 - kind: ServiceAccount
   name: admin-dashboard
-  namespace: default
+  namespace: {{ .Release.Namespace }}
 roleRef:
   kind: ClusterRole
   name: admin-cluster-role
