@@ -34,6 +34,9 @@ Once Dapr is installed, we can install our Dapr-Enabled and FeatureFlag-Enabled 
 
 # Running v2.0.0
 
+> [!Important]
+> The published `oci://docker.io/salaboy/conference-app:v2.0.0` depends on Bitnami images that no longer exist ([F039](../docs/findings/F039-chapter7-v2-chart-bitnami.md)). The fixed Dapr chart (`v2.1.0`) and an updated version of this chapter are on this fork's branch [`v2.0.0-bitnami-replacements`](https://github.com/allensanborn/platforms-on-k8s/tree/v2.0.0-bitnami-replacements/chapter-7): check out that branch and follow its `chapter-7/README.md`.
+
 Now you can install v2.0.0 of the application by running: 
 
 ```shell

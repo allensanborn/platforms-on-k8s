@@ -46,3 +46,4 @@ Sources the findings were checked against: the llm-wiki page *Platform Engineeri
 | [F038](F038-keptn-klt-chart-renamed.md) | Keptn tutorial installs the frozen `klt` chart | 9 | medium | documented (untested) |  |
 | [F039](F039-chapter7-v2-chart-bitnami.md) | Chapter 7's Dapr chart (v2.0.0) has the same Bitnami dependencies | 7 | high | fixed on branch `v2.0.0-bitnami-replacements` | a62e4bd (other branch) |
 | [F040](F040-keptn-observability-stack.md) | The Keptn chapter's observability install no longer completes | 9 | medium | open (two of three blockers fixed) | 47641bd |
+| [F041](F041-translated-readmes-stale.md) | Translated READMEs still carry the old commands | 2-9 | low | open | — |

@@ -10,32 +10,13 @@ If you have [Knative Serving installed](https://knative.dev/docs/install/yaml-in
 ko apply -f config-knative/
 ```
 
-You can install Redis using the Bitnami Helm Chart: 
+The services expect Kafka, Redis and PostgreSQL under the names used in [Chapter 8](../../chapter-8/knative/README.md). Bitnami's charts no longer work (their images were removed; see [F001](../../docs/findings/F001-bitnami-images-removed.md)), so install the same infrastructure as Chapter 8 (from the repository root):
 
 ```shell
-helm repo add bitnami https://charts.bitnami.com/bitnami
-helm repo update
-helm install redis bitnami/redis --set image.tag=6.2 --set architecture=standalone
+helm upgrade --install cnpg cloudnative-pg --repo https://cloudnative-pg.github.io/charts --version 0.29.1 --namespace cnpg-system --create-namespace --wait
+helm upgrade --install strimzi oci://quay.io/strimzi-helm/strimzi-kafka-operator --version 1.2.0 --namespace strimzi --create-namespace --set watchAnyNamespace=true --wait
+kubectl apply -f chapter-8/knative/c4p-sql-init.yaml
+kubectl apply -f chapter-8/knative/infrastructure/
 ```
 
-
-Before installing PostgreSQL, we need to create a configMap with the tables that we want to create: 
-```shell
-kubectl apply -f c4p-service/init-sql-configmap.yaml
-```
-
-Same with PostgreSQL: 
-```shell
-helm install postgres oci://registry-1.docker.io/bitnamicharts/postgresql --set image.debug=true --set global.postgresql.auth.postgresPassword=postgres --set primary.initdb.user=postgres --set primary.initdb.password=postgres --set primary.initdb.scriptsConfigMap=init-sql
-```
-
-and Kafka:
-
-```shell
-helm install kafka oci://registry-1.docker.io/bitnamicharts/kafka
-```
-
-Optional Ingress Controller: 
-```shell
-helm install ingress-controller oci://registry-1.docker.io/bitnamicharts/nginx-ingress-controller
-```
+That gives you `kafka-kafka-bootstrap:9092`, `redis:6379` (Secret `redis` / `redis-password`) and `postgresql-rw:5432` (Secret `postgresql-superuser` / `password`), which `config-knative/` points at. For an ingress controller, use ingress-nginx as in [Chapter 2](../../chapter-2/README.md) instead of Bitnami's `nginx-ingress-controller` chart. (Not tested with `ko apply`; the same manifests were tested with the published images in Chapter 8.)
