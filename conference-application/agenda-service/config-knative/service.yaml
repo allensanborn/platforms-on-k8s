@@ -14,9 +14,9 @@ spec:
           name: user-container
           env: 
           - name: KAFKA_URL
-            value: kafka.default.svc.cluster.local:9092
+            value: kafka-kafka-bootstrap.default.svc.cluster.local:9092
           - name: REDIS_HOST
-            value: redis-master.default.svc.cluster.local
+            value: redis.default.svc.cluster.local
           - name: REDIS_PASSWORD
             valueFrom:
               secretKeyRef:

@@ -14,14 +14,14 @@ spec:
           name: user-container
           env:
           - name: KAFKA_URL
-            value: kafka.default.svc.cluster.local:9092 
+            value: kafka-kafka-bootstrap.default.svc.cluster.local:9092 
           - name: POSTGRES_HOST
-            value: postgres-postgresql.default.svc.cluster.local
+            value: postgresql-rw.default.svc.cluster.local
           - name: POSTGRES_PASSWORD
             valueFrom:
               secretKeyRef:
-                name: postgres-postgresql
-                key: postgres-password
+                name: postgresql-superuser
+                key: password
           - name: POD_NODENAME
             valueFrom:
               fieldRef:

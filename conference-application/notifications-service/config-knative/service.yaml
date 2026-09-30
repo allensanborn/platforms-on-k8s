@@ -14,7 +14,7 @@ spec:
           name: user-container
           env:
           - name: KAFKA_URL
-            value: kafka.default.svc.cluster.local:9092
+            value: kafka-kafka-bootstrap.default.svc.cluster.local:9092
           - name: POD_NODENAME
             valueFrom:
               fieldRef:
