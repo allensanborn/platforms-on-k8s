@@ -135,7 +135,7 @@ Metadata:
 Spec:
   Metadata:
     Name:   brokers
-    Value:  conference-kafka.default.svc.cluster.local:9092
+    Value:  conference-kafka-bootstrap.default.svc.cluster.local:9092
     Name:   authType
     Value:  none
   Type:     pubsub.kafka
