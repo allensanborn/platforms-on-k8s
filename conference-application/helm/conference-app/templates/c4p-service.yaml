@@ -16,6 +16,11 @@ spec:
         app.kubernetes.io/version: {{ .Values.services.tag  }}
         keptn.sh/post-deployment-tasks: stdout-notification
     spec:
+{{- if .Values.install.infrastructure }}
+{{ include "conference-app.waitFor" (list (printf "%s-kafka-bootstrap.%s.svc.cluster.local:9092" $.Release.Name $.Release.Namespace) (printf "%s-postgresql-rw.%s.svc.cluster.local:5432" $.Release.Name $.Release.Namespace)) | indent 6 }}
+{{- else }}
+{{ include "conference-app.waitFor" (list (ternary .Values.c4p.kafka.url (printf "%s:9092" .Values.c4p.kafka.url) (contains ":" (toString .Values.c4p.kafka.url))) (ternary .Values.c4p.postgresql.host (printf "%s:5432" .Values.c4p.postgresql.host) (contains ":" (toString .Values.c4p.postgresql.host)))) | indent 6 }}
+{{- end }}
       containers:
       - name: c4p-service
         image: "{{ .Values.services.registry }}/{{ .Values.services.c4p.image }}:{{ .Values.services.tag }}"

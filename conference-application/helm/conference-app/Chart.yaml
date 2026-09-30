@@ -10,6 +10,9 @@ maintainers:
     email: salaboy@gmail.com
     url: http://salaboy.com
 home: http://github.com/salaboy/platforms-on-k8s
+# sources[0] becomes the OCI annotation org.opencontainers.image.source, which links the GHCR package to the fork
+sources:
+  - https://github.com/allensanborn/platforms-on-k8s
 dependencies:
   # Bitnami's versioned images were removed from docker.io/bitnami in Aug 2025.
   # Redis -> official Valkey chart (aliased so values and resource names stay `redis`).

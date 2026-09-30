@@ -156,9 +156,9 @@ spec:
               namespace: default
               chart:
                 name: conference-app
-                # Packaged from conference-application/helm/conference-app on this fork's branch.
-                # The published oci://docker.io/salaboy/conference-app:v1.0.0 still uses Bitnami images.
-                url: https://raw.githubusercontent.com/allensanborn/platforms-on-k8s/crossplane-v2-and-bitnami-replacements/chapter-6/charts/conference-app-v1.1.0.tgz
+                # This fork's chart; the book's oci://docker.io/salaboy/conference-app:v1.0.0 still uses Bitnami images.
+                repository: oci://ghcr.io/allensanborn
+                version: v1.1.0
               values:
                 install:
                   infrastructure: true   # patched

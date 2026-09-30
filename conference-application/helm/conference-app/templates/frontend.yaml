@@ -16,6 +16,11 @@ spec:
         app.kubernetes.io/version: {{ .Values.services.tag  }}
         keptn.sh/post-deployment-tasks: stdout-notification
     spec:
+{{- if .Values.install.infrastructure }}
+{{ include "conference-app.waitFor" (list (printf "%s-kafka-bootstrap.%s.svc.cluster.local:9092" $.Release.Name $.Release.Namespace)) | indent 6 }}
+{{- else }}
+{{ include "conference-app.waitFor" (list (ternary .Values.frontend.kafka.url (printf "%s:9092" .Values.frontend.kafka.url) (contains ":" (toString .Values.frontend.kafka.url)))) | indent 6 }}
+{{- end }}
       containers:
       - name: frontend
         image: "{{ .Values.services.registry }}/{{ .Values.services.frontend.image }}:{{ .Values.services.tag }}"

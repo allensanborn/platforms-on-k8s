@@ -16,6 +16,11 @@ spec:
         app.kubernetes.io/version: {{ .Values.services.tag  }}
         keptn.sh/post-deployment-tasks: stdout-notification
     spec:
+{{- if .Values.install.infrastructure }}
+{{ include "conference-app.waitFor" (list (printf "%s-kafka-bootstrap.%s.svc.cluster.local:9092" $.Release.Name $.Release.Namespace) (printf "%s-redis.%s.svc.cluster.local:6379" $.Release.Name $.Release.Namespace)) | indent 6 }}
+{{- else }}
+{{ include "conference-app.waitFor" (list (ternary .Values.agenda.kafka.url (printf "%s:9092" .Values.agenda.kafka.url) (contains ":" (toString .Values.agenda.kafka.url))) (ternary .Values.agenda.redis.host (printf "%s:6379" .Values.agenda.redis.host) (contains ":" (toString .Values.agenda.redis.host)))) | indent 6 }}
+{{- end }}
       containers:
       - name: agenda-service
         image: "{{ .Values.services.registry }}/{{ .Values.services.agenda.image }}:{{ .Values.services.tag  }}"

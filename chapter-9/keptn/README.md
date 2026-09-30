@@ -100,7 +100,7 @@ You can point your browser to [http://localhost:3000/](http://localhost:3000/). 
 Let's now deploy the Conference Application as we did in Chapter 2: 
 
 ```shell
-helm install conference oci://registry-1.docker.io/salaboy/conference-app --version v1.0.0
+helm install conference oci://ghcr.io/allensanborn/conference-app --version v1.1.0
 ```
 
 Check both Jaeger and Grafana Keptn Dashboards, as by default, Keptn Workloads will track the deployment frequency. 

@@ -139,18 +139,18 @@ helm upgrade --install strimzi oci://quay.io/strimzi-helm/strimzi-kafka-operator
 
 ## Installing the Conference Application
 
-> [!Note]
-> The published chart `oci://docker.io/salaboy/conference-app:v1.0.0` still depends on the Bitnami images and can only be updated by its owner. Until it is republished, install the chart from this repository. From the repository root:
+From Helm 3.7+, we can use OCI images to publish, download, and install Helm Charts. The book's chart, `oci://docker.io/salaboy/conference-app:v1.0.0`, still depends on the Bitnami images, so this fork publishes the updated chart to GitHub Container Registry as `v1.1.0`:
 
 ```shell
-helm dependency update conference-application/helm/conference-app
-helm install conference conference-application/helm/conference-app
+helm install conference oci://ghcr.io/allensanborn/conference-app --version v1.1.0
 ```
+
+(Alternative: install from the repository checkout with `helm dependency update conference-application/helm/conference-app && helm install conference conference-application/helm/conference-app`.)
 
 You can also run the following command to see the details of the chart: 
 
 ```shell
-helm show all conference-application/helm/conference-app
+helm show all oci://ghcr.io/allensanborn/conference-app --version v1.1.0
 ```
 
 Check that all the application pods are up and running. 
@@ -164,26 +164,23 @@ Eventually, you should see something like this. It can take a few minutes:
 
 ```shell
 kubectl get pods
-NAME                                                           READY   STATUS    RESTARTS        AGE
-conference-agenda-service-deployment-6d76f468fb-7jbjn          1/1     Running   5 (9m44s ago)   13m
-conference-c4p-service-deployment-6d4b69d557-wxzs7             1/1     Running   4 (11m ago)     13m
-conference-conference-dual-role-0                              1/1     Running   0               13m
-conference-entity-operator-599cf9fc45-pm8g2                    1/1     Running   0               10m
-conference-frontend-deployment-58df5fc775-b82n9                1/1     Running   6 (4m ago)      13m
-conference-notifications-service-deployment-6fbbb76c8f-8qdbz   1/1     Running   4 (11m ago)     13m
-conference-postgresql-1                                        1/1     Running   0               10m
-conference-redis-5895ff567d-t8czr                              1/1     Running   0               13m
+NAME                                                          READY   STATUS    RESTARTS   AGE
+conference-agenda-service-deployment-54c89fb8cd-dgtmv         1/1     Running   0          52s
+conference-c4p-service-deployment-694f967459-zlg88            1/1     Running   0          52s
+conference-conference-dual-role-0                             1/1     Running   0          50s
+conference-entity-operator-5bf54f6b6f-n25bf                   1/1     Running   0          13s
+conference-frontend-deployment-7f48d6cdcc-lgzfm               1/1     Running   0          52s
+conference-notifications-service-deployment-95dfd8c6b-r922h   1/1     Running   0          52s
+conference-postgresql-1                                       1/1     Running   0          16s
+conference-redis-5895ff567d-5ljq8                             1/1     Running   0          52s
 ```
 
-The Pod `RESTARTS` column shows that Kafka was slow, and the services were started first by Kubernetes, hence they restarted to wait for Kafka to be ready. You can wait for the infrastructure explicitly:
+Each service has a `wait-for-dependencies` init container that waits until Kafka (and Redis or PostgreSQL) accept connections, so the services start only once their infrastructure is up instead of crash-looping. You can also wait for the infrastructure explicitly:
 
 ```shell
 kubectl wait --for=condition=Ready cluster.postgresql.cnpg.io/conference-postgresql --timeout=300s
 kubectl wait --for=condition=Ready kafka/conference --timeout=600s
 ```
-
-If the frontend stays in `CrashLoopBackOff` after Kafka is `Ready`, restart it once with `kubectl rollout restart deploy/conference-frontend-deployment`.
-
 
 Now you can point your browser to [http://localhost](http://localhost) to see the application. 
 
