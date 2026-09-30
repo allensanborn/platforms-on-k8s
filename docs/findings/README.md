@@ -22,7 +22,7 @@ Sources the findings were checked against: the llm-wiki page *Platform Engineeri
 | [F014](F014-vcluster-values-schema.md) | vcluster 0.15.7 values (`syncer.extraArgs`, `multiNamespaceMode`, `fallbackHostDns`) are obsolete | 6 | high | fixed | b2ee1fc |
 | [F015](F015-vcluster-kubeconfig-san.md) | `exportKubeConfig.server: https://<name>.<ns>.svc` fails TLS verification | 6 | high | fixed | b2ee1fc |
 | [F016](F016-environment-deletion-hangs.md) | Deleting an Environment hangs on the in-vcluster Releases' finalizers | 6 | high | fixed | b2ee1fc |
-| [F017](F017-provider-helm-failed-release-no-retry.md) | A provider-helm Release whose first install fails stays `failed` | 6 | medium | fixed | b2ee1fc |
+| [F017](F017-provider-helm-failed-release-no-retry.md) | A provider-helm Release whose first install fails stays `failed` | 6 | medium | fixed | b2ee1fc, 07d8fa2 |
 | [F018](F018-operators-inside-vcluster.md) | The operator-based chart needs CNPG and Strimzi inside each vcluster | 6 | medium | fixed | b2ee1fc |
 | [F019](F019-frontend-debug-value-key.md) | The Conference chart's frontend debug value is `services.frontend.debug` | 6 | low | documented | b2ee1fc |
 | [F020](F020-infra-false-needs-values.md) | `install.infrastructure=false` without per-service values fails to render | 6 | low | open | — |
