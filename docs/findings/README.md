@@ -42,3 +42,5 @@ Sources the findings were checked against: the llm-wiki page *Platform Engineeri
 | [F034](F034-chapter8-bitnami-infra.md) | Chapter 8 installed Kafka, PostgreSQL and Redis from Bitnami charts | 8 | high | fixed | 571afcd |
 | [F035](F035-argo-rollouts-client-side-apply.md) | Argo Rollouts install fails with client-side apply (CRD annotation too long) | 8 | medium | fixed | 571afcd |
 | [F036](F036-chapter8-name-clash-and-knative-drift.md) | Knative and Argo Rollouts tutorials clash on one cluster; Knative pinned at 1.10 | 8 | low | documented | 571afcd |
+| [F037](F037-chapter9-dora-bitnami-postgresql.md) | Chapter 9 DORA demo installed PostgreSQL from the Bitnami chart | 9 | high | fixed | c4e4279 |
+| [F038](F038-keptn-klt-chart-renamed.md) | Keptn tutorial installs the frozen `klt` chart | 9 | medium | documented (untested) |  |
