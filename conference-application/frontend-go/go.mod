@@ -1,6 +1,6 @@
 module github.com/salaboy/platforms-on-k8s/conference-application/frontend-go
 
-go 1.19
+go 1.21
 
 require (
 	github.com/go-chi/chi v1.5.4

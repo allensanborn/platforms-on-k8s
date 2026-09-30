@@ -70,6 +70,8 @@ type Event struct {
 	Type    string `json:"type"`
 }
 
+var retryDelay = 2 * time.Second
+
 type Features struct {
 	DebugEnabled     string
 	GenerateProposal string
@@ -240,14 +242,26 @@ func getEnv(key, fallback string) string {
 	return value
 }
 
+type messageReader interface {
+	ReadMessage(ctx context.Context) (kafka.Message, error)
+}
+
 // consumeFromKafka consumes events from Kafka.
-func consumeFromKafka(reader *kafka.Reader) {
+// Read errors are retried: right after Kafka starts, the consumer group coordinator
+// may not be ready yet ("Not Coordinator For Group"), and exiting here used to take
+// the whole frontend (including its HTTP server) down with it.
+func consumeFromKafka(reader messageReader) {
 	fmt.Println("Consuming Events ...")
 
 	for {
 		m, err := reader.ReadMessage(context.Background())
+		if err == io.EOF {
+			return // reader closed
+		}
 		if err != nil {
-			log.Fatalln(err)
+			log.Printf("failed to read from Kafka, retrying: %v", err)
+			time.Sleep(retryDelay)
+			continue
 		}
 		fmt.Printf("message at topic:%v partition:%v offset:%v	%s = %s\n", m.Topic, m.Partition, m.Offset, string(m.Key), string(m.Value))
 
