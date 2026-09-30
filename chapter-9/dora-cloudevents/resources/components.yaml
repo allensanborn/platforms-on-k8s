@@ -27,12 +27,12 @@ spec:
         - image: salaboy/cloudevents-endpoint.go-4e91632f7bfe12b4534b6b17fcf435d2
           env:
           - name: POSTGRESQL_HOST
-            value: postgresql
+            value: postgresql-rw
           - name: POSTGRESQL_PASS
             valueFrom:
               secretKeyRef:
-                name: postgresql
-                key: postgres-password
+                name: postgresql-superuser
+                key: password
 
 
 ---
@@ -49,12 +49,12 @@ spec:
         - image: salaboy/cdevents-endpoint.go-8bace45f915c627a5aedeaafd3db49ef
           env:
             - name: POSTGRESQL_HOST
-              value: postgresql
+              value: postgresql-rw
             - name: POSTGRESQL_PASS
               valueFrom:
                 secretKeyRef:
-                  name: postgresql
-                  key: postgres-password
+                  name: postgresql-superuser
+                  key: password
 
 
 ---
@@ -71,12 +71,12 @@ spec:
         - image: salaboy/deployment-frequency-endpoint.go-e484609c9165cc59b9f8192d777292c6
           env:
             - name: POSTGRESQL_HOST
-              value: postgresql
+              value: postgresql-rw
             - name: POSTGRESQL_PASS
               valueFrom:
                 secretKeyRef:
-                  name: postgresql
-                  key: postgres-password
+                  name: postgresql-superuser
+                  key: password
 
 ---
 apiVersion: v1
@@ -117,12 +117,12 @@ spec:
                       name: routes
                       key: ce-routes.yaml
                 - name: POSTGRESQL_HOST
-                  value: postgresql
+                  value: postgresql-rw
                 - name: POSTGRESQL_PASS
                   valueFrom:
                     secretKeyRef:
-                      name: postgresql
-                      key: postgres-password
+                      name: postgresql-superuser
+                      key: password
           restartPolicy: OnFailure
 
 ---
@@ -144,10 +144,10 @@ spec:
                imagePullPolicy: IfNotPresent
                env:
                  - name: POSTGRESQL_HOST
-                   value: postgresql
+                   value: postgresql-rw
                  - name: POSTGRESQL_PASS
                    valueFrom:
                      secretKeyRef:
-                       name: postgresql
-                       key: postgres-password
+                       name: postgresql-superuser
+                       key: password
            restartPolicy: OnFailure

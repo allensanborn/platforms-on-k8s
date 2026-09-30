@@ -27,12 +27,12 @@ spec:
         - image: ko://cloudevents-endpoint.go
           env:
           - name: POSTGRESQL_HOST
-            value: postgresql
+            value: postgresql-rw
           - name: POSTGRESQL_PASS
             valueFrom:
               secretKeyRef:
-                name: postgresql
-                key: postgres-password
+                name: postgresql-superuser
+                key: password
 
 
 ---
@@ -49,12 +49,12 @@ spec:
         - image: ko://cdevents-endpoint.go
           env:
             - name: POSTGRESQL_HOST
-              value: postgresql
+              value: postgresql-rw
             - name: POSTGRESQL_PASS
               valueFrom:
                 secretKeyRef:
-                  name: postgresql
-                  key: postgres-password
+                  name: postgresql-superuser
+                  key: password
 
 
 ---
@@ -71,12 +71,12 @@ spec:
         - image: ko://deployment-frequency-endpoint.go
           env:
             - name: POSTGRESQL_HOST
-              value: postgresql
+              value: postgresql-rw
             - name: POSTGRESQL_PASS
               valueFrom:
                 secretKeyRef:
-                  name: postgresql
-                  key: postgres-password
+                  name: postgresql-superuser
+                  key: password
 
 ---
 apiVersion: v1
@@ -117,12 +117,12 @@ spec:
                       name: routes
                       key: ce-routes.yaml
                 - name: POSTGRESQL_HOST
-                  value: postgresql
+                  value: postgresql-rw
                 - name: POSTGRESQL_PASS
                   valueFrom:
                     secretKeyRef:
-                      name: postgresql
-                      key: postgres-password
+                      name: postgresql-superuser
+                      key: password
           restartPolicy: OnFailure
 
 ---
@@ -144,10 +144,10 @@ spec:
                imagePullPolicy: IfNotPresent
                env:
                  - name: POSTGRESQL_HOST
-                   value: postgresql
+                   value: postgresql-rw
                  - name: POSTGRESQL_PASS
                    valueFrom:
                      secretKeyRef:
-                       name: postgresql
-                       key: postgres-password
+                       name: postgresql-superuser
+                       key: password
            restartPolicy: OnFailure

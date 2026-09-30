@@ -35,10 +35,14 @@ kubectl apply -f https://github.com/knative/eventing/releases/download/knative-v
 kubectl create ns dora-cloudevents
 ```
 
-1. Install PostgreSQL and Create Tables
+1. Install PostgreSQL and Create Tables. PostgreSQL runs as a [CloudNativePG](https://cloudnative-pg.io) `Cluster` (the Bitnami chart's images are no longer published); the functions connect to `postgresql-rw` with the `postgresql-superuser` Secret.
 ```shell
 kubectl apply -f resources/dora-sql-init.yaml
-helm install postgresql oci://registry-1.docker.io/bitnamicharts/postgresql --version 12.5.7 --namespace dora-cloudevents --set "image.debug=true" --set "primary.initdb.user=postgres" --set "primary.initdb.password=postgres" --set "primary.initdb.scriptsConfigMap=dora-init-sql" --set "global.postgresql.auth.postgresPassword=postgres" --set "primary.persistence.size=1Gi"
+helm upgrade --install cnpg cloudnative-pg \
+  --repo https://cloudnative-pg.github.io/charts --version 0.29.1 \
+  --namespace cnpg-system --create-namespace --wait
+kubectl apply -f resources/postgresql.yaml
+kubectl wait -n dora-cloudevents cluster.postgresql.cnpg.io/postgresql --for=condition=Ready --timeout=300s
 ```
 
 

@@ -1,0 +1,31 @@
+# PostgreSQL for the DORA metrics demo (replaces the Bitnami postgresql chart).
+# Needs the CloudNativePG operator and resources/dora-sql-init.yaml.
+# Host: postgresql-rw, Secret postgresql-superuser / password (the functions connect as postgres).
+apiVersion: v1
+kind: Secret
+metadata:
+  name: postgresql-superuser
+  namespace: dora-cloudevents
+type: kubernetes.io/basic-auth
+stringData:
+  username: postgres
+  password: postgres
+---
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: postgresql
+  namespace: dora-cloudevents
+spec:
+  instances: 1
+  enableSuperuserAccess: true
+  superuserSecret:
+    name: postgresql-superuser
+  bootstrap:
+    initdb:
+      postInitSQLRefs:
+        configMapRefs:
+        - name: dora-init-sql
+          key: init.sql
+  storage:
+    size: 1Gi
