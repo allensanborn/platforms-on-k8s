@@ -16,6 +16,10 @@ SOURCE=https://github.com/$OWNER/platforms-on-k8s
 ROOT=$(git rev-parse --show-toplevel)
 MODE=${1:?usage: publish-ghcr.sh main|dapr}
 
+# Keep registry credentials out of ~/.docker: ko, docker and helm read these.
+export DOCKER_CONFIG=${DOCKER_CONFIG:-$ROOT/.scratch/docker-config}
+export HELM_REGISTRY_CONFIG=${HELM_REGISTRY_CONFIG:-$ROOT/.scratch/helm-registry.json}
+mkdir -p "$DOCKER_CONFIG" "$ROOT/.scratch"
 gh auth token | ko login ghcr.io -u "$OWNER" --password-stdin >/dev/null
 gh auth token | helm registry login ghcr.io -u "$OWNER" --password-stdin >/dev/null
 

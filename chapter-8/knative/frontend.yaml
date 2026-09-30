@@ -9,7 +9,7 @@ spec:
         autoscaling.knative.dev/min-scale: "1"
     spec:
       containers:
-        - image: salaboy/frontend-go-1739aa83b5e69d4ccb8a5615830ae66c:v1.0.0
+        - image: ghcr.io/allensanborn/frontend-go-1739aa83b5e69d4ccb8a5615830ae66c:v1.2.0
           env:
           - name: KAFKA_URL
             value: kafka-kafka-bootstrap.default.svc.cluster.local

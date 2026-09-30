@@ -136,7 +136,7 @@ func testService(ctx context.Context, client *dagger.Client, dir string) error {
 		ctr = ctr.WithEnvVariable("POSTGRES_HOST", "postgres")
 
 		agendaSvc := client.Container().
-			From("salaboy/agenda-service-0967b907d9920c99918e2b91b91937b3:v1.0.0").
+			From("ghcr.io/allensanborn/agenda-service-0967b907d9920c99918e2b91b91937b3:v1.2.0").
 			WithServiceBinding("kafka", kafkaSvc).
 			WithServiceBinding("redis", redisSvc).
 			WithEnvVariable("KAFKA_URL", "kafka:9092").
@@ -145,7 +145,7 @@ func testService(ctx context.Context, client *dagger.Client, dir string) error {
 		ctr = ctr.WithServiceBinding("agenda-service", agendaSvc)
 		ctr = ctr.WithEnvVariable("AGENDA_SERVICE_URL", "http://agenda-service:8080")
 		notificationsSvc := client.Container().
-			From("salaboy/notifications-service-0e27884e01429ab7e350cb5dff61b525:v1.0.0").
+			From("ghcr.io/allensanborn/notifications-service-0e27884e01429ab7e350cb5dff61b525:v1.2.0").
 			WithServiceBinding("kafka", kafkaSvc).
 			WithEnvVariable("KAFKA_URL", "kafka:9092").
 			WithExposedPort(8080)

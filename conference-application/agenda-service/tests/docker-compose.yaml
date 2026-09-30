@@ -53,7 +53,7 @@ services:
       redis:
         condition: service_healthy
     container_name: agenda-service
-    image: salaboy/agenda-service-0967b907d9920c99918e2b91b91937b3
+    image: ghcr.io/allensanborn/agenda-service-0967b907d9920c99918e2b91b91937b3:v1.2.0
     environment:
       KAFKA_URL: kafka:9092
       REDIS_HOST: redis

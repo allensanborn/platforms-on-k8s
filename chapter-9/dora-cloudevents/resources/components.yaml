@@ -8,7 +8,7 @@ spec:
   template:
     spec:
       containers:
-        - image: salaboy/function-api-server-to-service-deployment.go-6521f17b15021f118b7fbb689f3d723c
+        - image: ghcr.io/allensanborn/dora-function-api-server-to-service-deployment:v1.2.0
           env:
             - name: CDEVENTS_ENDPOINT_URL
               value: http://cdevents-raw-endpoint.dora-cloudevents.svc.cluster.local
@@ -24,7 +24,7 @@ spec:
   template:
     spec:
       containers:
-        - image: salaboy/cloudevents-endpoint.go-4e91632f7bfe12b4534b6b17fcf435d2
+        - image: ghcr.io/allensanborn/dora-cloudevents-endpoint:v1.2.0
           env:
           - name: POSTGRESQL_HOST
             value: postgresql-rw
@@ -46,7 +46,7 @@ spec:
   template:
     spec:
       containers:
-        - image: salaboy/cdevents-endpoint.go-8bace45f915c627a5aedeaafd3db49ef
+        - image: ghcr.io/allensanborn/dora-cdevents-endpoint:v1.2.0
           env:
             - name: POSTGRESQL_HOST
               value: postgresql-rw
@@ -68,7 +68,7 @@ spec:
   template:
     spec:
       containers:
-        - image: salaboy/deployment-frequency-endpoint.go-e484609c9165cc59b9f8192d777292c6
+        - image: ghcr.io/allensanborn/dora-deployment-frequency-endpoint:v1.2.0
           env:
             - name: POSTGRESQL_HOST
               value: postgresql-rw
@@ -108,7 +108,7 @@ spec:
         spec:
           containers:
             - name: cloudevents-router
-              image: salaboy/cloudevents-router.go-c05d2ec2386bb7cbe123007f1346a902
+              image: ghcr.io/allensanborn/dora-cloudevents-router:v1.2.0
               imagePullPolicy: IfNotPresent
               env:
                 - name: CE_ROUTES
@@ -140,7 +140,7 @@ spec:
          spec:
            containers:
              - name: cdevents-deployment-frequency
-               image: salaboy/deployment-frequency.go-32570177dcd730f5ae5e54f3932c3fa4
+               image: ghcr.io/allensanborn/dora-deployment-frequency:v1.2.0
                imagePullPolicy: IfNotPresent
                env:
                  - name: POSTGRESQL_HOST

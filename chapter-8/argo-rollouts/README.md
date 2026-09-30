@@ -68,7 +68,7 @@ spec:
     spec:
       containers:
       - name: notifications-service
-        image: salaboy/notifications-service-0e27884e01429ab7e350cb5dff61b525:v1.0.0
+        image: ghcr.io/allensanborn/notifications-service-0e27884e01429ab7e350cb5dff61b525:v1.2.0
         env: 
           - name: KAFKA_URL
             value: kafka-kafka-bootstrap.default.svc.cluster.local
@@ -136,7 +136,7 @@ Strategy:        Canary
   Step:          4/4
   SetWeight:     100
   ActualWeight:  100
-Images:          salaboy/notifications-service-0e27884e01429ab7e350cb5dff61b525:v1.0.0 (stable)
+Images:          ghcr.io/allensanborn/notifications-service-0e27884e01429ab7e350cb5dff61b525:v1.2.0 (stable)
 Replicas:
   Desired:       3
   Current:       3
@@ -155,11 +155,11 @@ NAME                                                      KIND        STATUS    
 
 As you can see, because we just created the Rollouts, three replicas are created and all the traffic is being routed to this initial `revision:1`, and the Status is set to `Healthy`.
 
-Let's update the Notification Service version to `v1.1.0` by running: 
+Let's update the Notification Service version to `v1.3.0` by running: 
 
 ```shell
 kubectl argo rollouts set image notifications-service-canary \
-  notifications-service=salaboy/notifications-service-0e27884e01429ab7e350cb5dff61b525:v1.1.0
+  notifications-service=ghcr.io/allensanborn/notifications-service-0e27884e01429ab7e350cb5dff61b525:v1.3.0
 ```
 
 Now you see the second revision (revision:2) created: 
@@ -173,8 +173,8 @@ Strategy:        Canary
   Step:          1/4
   SetWeight:     25
   ActualWeight:  25
-Images:          salaboy/notifications-service-0e27884e01429ab7e350cb5dff61b525:v1.0.0 (stable)
-                 salaboy/notifications-service-0e27884e01429ab7e350cb5dff61b525:v1.1.0 (canary)
+Images:          ghcr.io/allensanborn/notifications-service-0e27884e01429ab7e350cb5dff61b525:v1.2.0 (stable)
+                 ghcr.io/allensanborn/notifications-service-0e27884e01429ab7e350cb5dff61b525:v1.3.0 (canary)
 Replicas:
   Desired:       3
   Current:       4
@@ -201,14 +201,14 @@ Feel free to hit the `service/info` endpoint to see which version is answering y
 ```shell
 curl localhost/service/info
 ```
-Roughly, one in four requests should be answered by version `v1.1.0`:
+Roughly, one in four requests should be answered by version `v1.3.0`:
 
 ```shell
 > curl localhost/service/info | jq
 
 {
     "name":"NOTIFICATIONS",
-    "version":"1.0.0",
+    "version":"1.2.0",
     "source":"https://github.com/salaboy/platforms-on-k8s/tree/main/conference-application/notifications-service",
     "podName":"notifications-service-canary-7f6b88b5fb-tw8fj",
     "podNamespace":"default",
@@ -221,7 +221,7 @@ Roughly, one in four requests should be answered by version `v1.1.0`:
 
 {
     "name":"NOTIFICATIONS",
-    "version":"1.0.0",
+    "version":"1.2.0",
     "source":"https://github.com/salaboy/platforms-on-k8s/tree/main/conference-application/notifications-service",
     "podName":"notifications-service-canary-7f6b88b5fb-tw8fj",
     "podNamespace":"default",
@@ -234,7 +234,7 @@ Roughly, one in four requests should be answered by version `v1.1.0`:
 
 {
     "name":"NOTIFICATIONS-IMPROVED",
-    "version":"1.1.0",
+    "version":"1.3.0",
     "source":"https://github.com/salaboy/platforms-on-k8s/tree/v1.1.0/conference-application/notifications-service",
     "podName":"notifications-service-canary-68fd6b4ff9-jrjxh",
     "podNamespace":"default",
@@ -247,7 +247,7 @@ Roughly, one in four requests should be answered by version `v1.1.0`:
 
 {
     "name":"NOTIFICATIONS",
-    "version":"1.0.0",
+    "version":"1.2.0",
     "source":"https://github.com/salaboy/platforms-on-k8s/tree/main/conference-application/notifications-service",
     "podName":"notifications-service-canary-7f6b88b5fb-tw8fj",
     "podNamespace":"default",
@@ -278,7 +278,7 @@ Strategy:        Canary
   Step:          4/4
   SetWeight:     100
   ActualWeight:  100
-Images:          salaboy/notifications-service-0e27884e01429ab7e350cb5dff61b525:v1.1.0 (stable)
+Images:          ghcr.io/allensanborn/notifications-service-0e27884e01429ab7e350cb5dff61b525:v1.3.0 (stable)
 Replicas:
   Desired:       3
   Current:       3
@@ -301,7 +301,7 @@ And in the Dashboard:
 
 ![canary promoted](../imgs/argo-rollouts-dashboard-canary-2.png)
 
-Now all requests should be answered by `v1.1.0`:
+Now all requests should be answered by `v1.3.0`:
 
 ```shell
 
@@ -309,7 +309,7 @@ Now all requests should be answered by `v1.1.0`:
 
 {
     "name":"NOTIFICATIONS-IMPROVED",
-    "version":"1.1.0",
+    "version":"1.3.0",
     "source":"https://github.com/salaboy/platforms-on-k8s/tree/v1.1.0/conference-application/notifications-service",
     "podName":"notifications-service-canary-68fd6b4ff9-jrjxh",
     "podNamespace":"default",
@@ -322,7 +322,7 @@ Now all requests should be answered by `v1.1.0`:
 
 {
     "name":"NOTIFICATIONS-IMPROVED",
-    "version":"1.1.0",
+    "version":"1.3.0",
     "source":"https://github.com/salaboy/platforms-on-k8s/tree/v1.1.0/conference-application/notifications-service",
     "podName":"notifications-service-canary-68fd6b4ff9-jrjxh",
     "podNamespace":"default",
@@ -335,7 +335,7 @@ Now all requests should be answered by `v1.1.0`:
 
 {
     "name":"NOTIFICATIONS-IMPROVED",
-    "version":"1.1.0",
+    "version":"1.3.0",
     "source":"https://github.com/salaboy/platforms-on-k8s/tree/v1.1.0/conference-application/notifications-service",
     "podName":"notifications-service-canary-68fd6b4ff9-jrjxh",
     "podNamespace":"default",
@@ -376,7 +376,7 @@ spec:
     spec:
       containers:
       - name: notifications-service
-        image: salaboy/notifications-service-0e27884e01429ab7e350cb5dff61b525:v1.0.0
+        image: ghcr.io/allensanborn/notifications-service-0e27884e01429ab7e350cb5dff61b525:v1.2.0
         env: 
           - name: KAFKA_URL
             value: kafka-kafka-bootstrap.default.svc.cluster.local
@@ -411,7 +411,7 @@ Name:            notifications-service-bluegreen
 Namespace:       default
 Status:          ✔ Healthy
 Strategy:        BlueGreen
-Images:          salaboy/notifications-service-0e27884e01429ab7e350cb5dff61b525:v1.0.0 (stable, active)
+Images:          ghcr.io/allensanborn/notifications-service-0e27884e01429ab7e350cb5dff61b525:v1.2.0 (stable, active)
 Replicas:
   Desired:       2
   Current:       2
@@ -428,14 +428,14 @@ NAME                                                         KIND        STATUS 
 
 ```
 
-We get two replicas of our Notification Service up and running. If we curl `localhost/service/info` we should get the Notification Service `v1.0.0` information: 
+We get two replicas of our Notification Service up and running. If we curl `localhost/service/info` we should get the Notification Service `v1.2.0` information: 
 
 ```shell
 > curl localhost/service/info | jq
 
 {
     "name":"NOTIFICATIONS",
-    "version":"1.0.0",
+    "version":"1.2.0",
     "source":"https://github.com/salaboy/platforms-on-k8s/tree/main/conference-application/notifications-service",
     "podName":"notifications-service-canary-7f6b88b5fb-tw8fj",
     "podNamespace":"default",
@@ -450,11 +450,11 @@ And the Argo Rollouts Dashboard should show us our Blue/Green Rollout:
 
 ![blue green 1](../imgs/argo-rollouts-dashboard-bluegree-1.png)
 
-As we did with the Canary Release, we can update our Rollout configuration, in this case setting the image for version `v1.1.0`.
+As we did with the Canary Release, we can update our Rollout configuration, in this case setting the image for version `v1.3.0`.
 
 ```shell
 kubectl argo rollouts set image notifications-service-bluegreen \
-  notifications-service=salaboy/notifications-service-0e27884e01429ab7e350cb5dff61b525:v1.1.0
+  notifications-service=ghcr.io/allensanborn/notifications-service-0e27884e01429ab7e350cb5dff61b525:v1.3.0
 ```
 
 Now you should see in the terminal both versions of the Notification Service running in parallel: 
@@ -465,8 +465,8 @@ Namespace:       default
 Status:          ॥ Paused
 Message:         BlueGreenPause
 Strategy:        BlueGreen
-Images:          salaboy/notifications-service-0e27884e01429ab7e350cb5dff61b525:v1.0.0 (stable, active)
-                 salaboy/notifications-service-0e27884e01429ab7e350cb5dff61b525:v1.1.0 (preview)
+Images:          ghcr.io/allensanborn/notifications-service-0e27884e01429ab7e350cb5dff61b525:v1.2.0 (stable, active)
+                 ghcr.io/allensanborn/notifications-service-0e27884e01429ab7e350cb5dff61b525:v1.3.0 (preview)
 Replicas:
   Desired:       2
   Current:       4
@@ -486,7 +486,7 @@ NAME                                                         KIND        STATUS 
       └──□ notifications-service-bluegreen-56bb777689-qzg9l  Pod         ✔ Running  8m34s  ready:1/1
 ```
 
-Both `v1.0.0` and `v1.1.0` are running and Healthy, but the Status of the BlueGreen Rollout is in Pause, as it will keep running both versions until the team responsible for validating the `preview` / `green` version is ready for the prime time. 
+Both `v1.2.0` and `v1.3.0` are running and Healthy, but the Status of the BlueGreen Rollout is in Pause, as it will keep running both versions until the team responsible for validating the `preview` / `green` version is ready for the prime time. 
 
 Check the Argo Rollouts Dashboard, it should show both versions running too:
 
@@ -499,7 +499,7 @@ At this point, you can send requests to both services by using the Ingress route
 
 {
     "name":"NOTIFICATIONS",
-    "version":"1.0.0",
+    "version":"1.2.0",
     "source":"https://github.com/salaboy/platforms-on-k8s/tree/main/conference-application/notifications-service",
     "podName":"notifications-service-canary-7f6b88b5fb-tw8fj",
     "podNamespace":"default",
@@ -516,7 +516,7 @@ And now let's check Green Service:
 
 {
     "name":"NOTIFICATIONS-IMPROVED",
-    "version":"1.1.0",
+    "version":"1.3.0",
     "source":"https://github.com/salaboy/platforms-on-k8s/tree/v1.1.0/conference-application/notifications-service",
     "podName":"notifications-service-canary-68fd6b4ff9-jrjxh",
     "podNamespace":"default",
@@ -539,8 +539,8 @@ Name:            notifications-service-bluegreen
 Namespace:       default
 Status:          ✔ Healthy
 Strategy:        BlueGreen
-Images:          salaboy/notifications-service-0e27884e01429ab7e350cb5dff61b525:v1.0.0
-                 salaboy/notifications-service-0e27884e01429ab7e350cb5dff61b525:v1.1.0 (stable, active)
+Images:          ghcr.io/allensanborn/notifications-service-0e27884e01429ab7e350cb5dff61b525:v1.2.0
+                 ghcr.io/allensanborn/notifications-service-0e27884e01429ab7e350cb5dff61b525:v1.3.0 (stable, active)
 Replicas:
   Desired:       2
   Current:       4

@@ -6,7 +6,7 @@ This repository contains all the source code, tutorials, and examples from the [
 
 This is a fork of [salaboy/platforms-on-k8s](https://github.com/salaboy/platforms-on-k8s), updated in September 2026 on the branch `crossplane-v2-and-bitnami-replacements`:
 
-- Bitnami stopped publishing its versioned images in 2025, so the Conference application's Redis, PostgreSQL and Kafka no longer started. The chart now uses the official Valkey chart, a CloudNativePG `Cluster` and Strimzi Kafka, and it's published as `oci://ghcr.io/allensanborn/conference-app` version `v1.1.0`.
+- Bitnami stopped publishing its versioned images in 2025, so the Conference application's Redis, PostgreSQL and Kafka no longer started. The chart now uses the official Valkey chart, a CloudNativePG `Cluster` and Strimzi Kafka, and it's published as `oci://ghcr.io/allensanborn/conference-app` version `v1.2.0`. The service images are rebuilt from this repository and published under `ghcr.io/allensanborn` too, so nothing depends on the book author's registry. `hack/publish-ghcr.sh` republishes everything.
 - Chapters 5 and 6 are rewritten for Crossplane v2 (namespaced XRs, function pipelines) and vcluster 0.37.
 - Every change was tested on local kind clusters unless marked otherwise.
 

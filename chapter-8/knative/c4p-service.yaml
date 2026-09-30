@@ -6,7 +6,7 @@ spec:
   template:
     spec:
       containers:
-        - image: salaboy/c4p-service-a3dc0474cbfa348afcdf47a8eee70ba9:v1.0.0
+        - image: ghcr.io/allensanborn/c4p-service-a3dc0474cbfa348afcdf47a8eee70ba9:v1.2.0
           env:
           - name: KAFKA_URL
             value: kafka-kafka-bootstrap.default.svc.cluster.local

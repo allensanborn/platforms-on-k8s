@@ -145,7 +145,7 @@ spec:
   template:
     spec:
       containers:
-        - image: salaboy/notifications-service-0e27884e01429ab7e350cb5dff61b525:v1.0.0
+        - image: ghcr.io/allensanborn/notifications-service-0e27884e01429ab7e350cb5dff61b525:v1.2.0
           env:
           - name: KAFKA_URL
             value: kafka-kafka-bootstrap.default.svc.cluster.local
@@ -186,7 +186,7 @@ You should see the following output:
     "podNodeName": "dev-control-plane",
     "podServiceAccount": "default",
     "source": "https://github.com/salaboy/platforms-on-k8s/tree/main/conference-application/notifications-service",
-    "version": "1.0.0"
+    "version": "1.2.0"
 }
 
 ```
@@ -293,7 +293,7 @@ You should see the following output:
     "podNodeName": "dev-control-plane",
     "podServiceAccount": "default",
     "source": "https://github.com/salaboy/platforms-on-k8s/tree/main/conference-application/notifications-service",
-    "version": "1.0.0"
+    "version": "1.2.0"
 }
 
 ```
@@ -318,11 +318,11 @@ spec:
         autoscaling.knative.dev/min-scale: "1"
     spec:
       containers:
-        - image: salaboy/notifications-service-0e27884e01429ab7e350cb5dff61b525:v1.0.0  
+        - image: ghcr.io/allensanborn/notifications-service-0e27884e01429ab7e350cb5dff61b525:v1.2.0  
       ...
 ```
 
-To `v1.1.0`: 
+To `v1.3.0`: 
 
 ```yaml
 apiVersion: serving.knative.dev/v1
@@ -336,7 +336,7 @@ spec:
         autoscaling.knative.dev/min-scale: "1"
     spec:
       containers:
-        - image: salaboy/notifications-service-0e27884e01429ab7e350cb5dff61b525:v1.1.0  
+        - image: ghcr.io/allensanborn/notifications-service-0e27884e01429ab7e350cb5dff61b525:v1.3.0  
       ...
 ```
 
@@ -351,13 +351,13 @@ Before saving this change, that will create a new revision which we can use to s
     percent: 50
 ```
 
-Now if you start hitting the `service/info` endpoint again you will see that half of the traffic is being routed to version `v1.0.0` of our service and the other half to version `v1.1.0`.
+Now if you start hitting the `service/info` endpoint again you will see that half of the traffic is being routed to version `v1.2.0` of our service and the other half to version `v1.3.0`.
 
 ```shell
 > curl http://notifications-service.default.127.0.0.1.sslip.io/service/info | jq
 {
     "name":"NOTIFICATIONS-IMPROVED",
-    "version":"1.1.0",
+    "version":"1.3.0",
     "source":"https://github.com/salaboy/platforms-on-k8s/tree/v1.1.0/conference-application/notifications-service",
     "podName":"notifications-service-00003-deployment-59fb5bff6c-2gfqt",
     "podNamespace":"default",
@@ -369,7 +369,7 @@ Now if you start hitting the `service/info` endpoint again you will see that hal
 > curl http://notifications-service.default.127.0.0.1.sslip.io/service/info | jq
 {
     "name":"NOTIFICATIONS",
-    "version":"1.0.0",
+    "version":"1.2.0",
     "source":"https://github.com/salaboy/platforms-on-k8s/tree/main/conference-application/notifications-service",
     "podName":"notifications-service-00001-deployment-7ff76b4c77-h6ts4",
     "podNamespace":"default",
@@ -416,7 +416,7 @@ Let's now modify the Frontend Knative Service to deploy a new version with the d
 kubectl edit ksvc frontend
 ```
 
-Update the image field to point to `v1.1.0` and add the FEATURE_DEBUG_ENABLED environment variable (remember that we are using the first version of the application that is not using OpenFeature).
+Update the image field to point to `v1.3.0` and add the FEATURE_DEBUG_ENABLED environment variable (remember that we are using the first version of the application that is not using OpenFeature).
 
 ```yaml
 spec:
@@ -426,7 +426,7 @@ spec:
         - name: FEATURE_DEBUG_ENABLED
           value: "true"
        ...
-        image: salaboy/frontend-go-1739aa83b5e69d4ccb8a5615830ae66c:v1.1.0
+        image: ghcr.io/allensanborn/frontend-go-1739aa83b5e69d4ccb8a5615830ae66c:v1.3.0
 ```
 
 Before saving the Knative Service, let's change the traffic rules to match the following:
@@ -442,19 +442,19 @@ traffic:
     tag: version110
 ```
 
-Notice that no traffic (percent: 0) will be routed to `v1.1.0` unless the tag is specified in the service URL. Users can now point to [http://version110-frontend.default.127.0.0.1.sslip.io](http://version110-frontend.default.127.0.0.1.sslip.io) to access `v1.1.0`
+Notice that no traffic (percent: 0) will be routed to `v1.3.0` unless the tag is specified in the service URL. Users can now point to [http://version110-frontend.default.127.0.0.1.sslip.io](http://version110-frontend.default.127.0.0.1.sslip.io) to access `v1.3.0`
 
 
 ![v1.1.0](../imgs/frontend-v1.1.0.png)
 
-Notice that `v1.1.0` has a different color theme, when you see them side by side you can notice the difference. Check the other sections of the application too. 
+In the book, the frontend's `v1.1.0` had a different color theme. This fork's `v1.3.0` and `v1.2.0` are built from the same code (only the version reported by `/service/info` differs), so the two look the same; use the `/api/features/` debug flag or the `version` field to tell them apart. Check the other sections of the application too. 
 
 
-If for some reason, you don't want or can't change the URL of the service, you can use HTTP Headers to access `v1.1.0`. Using a Browser plugin like [Chrome ModHeader](https://chrome.google.com/webstore/detail/modheader-modify-http-hea/idgpnmonknjnojddfkpgkljpfnnfcklj) you can modify all the requests that the browser is sending by adding parameters or headers. 
+If for some reason, you don't want or can't change the URL of the service, you can use HTTP Headers to access `v1.3.0`. Using a Browser plugin like [Chrome ModHeader](https://chrome.google.com/webstore/detail/modheader-modify-http-hea/idgpnmonknjnojddfkpgkljpfnnfcklj) you can modify all the requests that the browser is sending by adding parameters or headers. 
 
 Here we are setting the `Knative-Serving-Tag` header with the value `version110`, which is the name of the tag that we configured in the traffic rules for our frontend Knative Service. 
 
-Now we can access to the normal Knative Service URL (with no changes) to access `v1.1.0`: [http://frontend.default.127.0.0.1.sslip.io](http://frontend.default.127.0.0.1.sslip.io)
+Now we can access to the normal Knative Service URL (with no changes) to access `v1.3.0`: [http://frontend.default.127.0.0.1.sslip.io](http://frontend.default.127.0.0.1.sslip.io)
 
 ![v1.1.0 with header](../imgs/frontend-v1.1.0-with-header.png)
 

@@ -8,5 +8,5 @@ dependencies:
 - name: conference-app
   # this fork's chart (Valkey, CloudNativePG, Strimzi); the book's
   # oci://docker.io/salaboy conference-app v1.0.0 still pulls removed Bitnami images
-  version: v1.1.0
+  version: v1.2.0
   repository: oci://ghcr.io/allensanborn

@@ -25,7 +25,7 @@ kubectl apply -f crossplane/helm-provider-config.yaml
 ```
 
 > [!Important]
-> Updated for **Crossplane v2** and **vcluster 0.37.2** (tested on kind, September 2026). `Environment` is now a **namespaced** composite resource with no claim: a team creates it in its own namespace, and the vcluster runs there. The Composition is a function pipeline, and it uses provider-helm's namespaced `helm.m.crossplane.io` Releases and ProviderConfigs. The Conference chart's infrastructure is now operator-based (see [Chapter 2](../chapter-2/README.md#installing-the-infrastructure-operators)), so the Composition installs the CloudNativePG and Strimzi operators *inside* each vcluster before the application. The application chart is this fork's `oci://ghcr.io/allensanborn/conference-app:v1.1.0`, because the book's `oci://docker.io/salaboy/conference-app:v1.0.0` still uses Bitnami images. A copy of the same chart is in [`charts/`](charts/); to use it instead, replace the Composition's `chart.repository`/`chart.version` with `chart.url: https://raw.githubusercontent.com/allensanborn/platforms-on-k8s/crossplane-v2-and-bitnami-replacements/chapter-6/charts/conference-app-v1.1.0.tgz`.
+> Updated for **Crossplane v2** and **vcluster 0.37.2** (tested on kind, September 2026). `Environment` is now a **namespaced** composite resource with no claim: a team creates it in its own namespace, and the vcluster runs there. The Composition is a function pipeline, and it uses provider-helm's namespaced `helm.m.crossplane.io` Releases and ProviderConfigs. The Conference chart's infrastructure is now operator-based (see [Chapter 2](../chapter-2/README.md#installing-the-infrastructure-operators)), so the Composition installs the CloudNativePG and Strimzi operators *inside* each vcluster before the application. The application chart is this fork's `oci://ghcr.io/allensanborn/conference-app:v1.2.0` (images from `ghcr.io/allensanborn`), because the book's `oci://docker.io/salaboy/conference-app:v1.0.0` still uses Bitnami images.
 
 We will use [`vcluster`](https://www.vcluster.com/) in this tutorial, but there is no need to install anything in our cluster for vcluster to work. We need the `vcluster` CLI to connect to our `vcluster`s you can install it by following the instructions on the official site: [https://www.vcluster.com/docs/getting-started/setup](https://www.vcluster.com/docs/getting-started/setup)
 
@@ -108,7 +108,7 @@ The Composition creates five managed resources in the `team-a` namespace: the vc
 NAME                        CHART                    VERSION   SYNCED   READY   STATE      REVISION   DESCRIPTION        AGE
 team-a-dev-env              vcluster                 0.37.2    True     True    deployed   1          Install complete   3m40s
 team-a-dev-env-cnpg         cloudnative-pg           0.29.1    True     True    deployed   1          Install complete   3m40s
-team-a-dev-env-conference   conference-app           v1.1.0    True     True    deployed   1          Install complete   3m40s
+team-a-dev-env-conference   conference-app           v1.2.0    True     True    deployed   1          Install complete   3m40s
 team-a-dev-env-strimzi      strimzi-kafka-operator   1.2.0     True     True    deployed   1          Install complete   3m39s
 ```
 
@@ -152,13 +152,13 @@ In this short section, we deploy an Admin User Interface that allows teams to re
 
 Before installing the Admin User Interface, you need to make sure that you are not inside a `vcluster` session. (You can exit the `vcluster` context by typing `exit` in the terminal). Check that you have the `crossplane-system` namespaces in the current cluster where you are connected. 
 
-> [!Warning]
-> **Not updated for Crossplane v2 (untested).** The Admin application (`conference-admin/admin-go`) still writes the v1 shape of `Environment`: `spec.compositionSelector` at the top level and `spec.writeConnectionSecretToRef`, with no namespace handling for a namespaced XR. Making it work needs Go changes (`api/types/v1alpha1/environment.go` and the client calls) and a rebuilt image, which this update doesn't include.
+> [!Note]
+> This fork's Admin application (`conference-admin` chart and image `v1.2.0`, both on `ghcr.io/allensanborn`) works with Crossplane v2's namespaced `Environment`. It creates and lists Environments in one namespace, set with `environmentNamespace` (default: the release's namespace), and fills in the fields the UI expects from the v2 resource ([F021](../docs/findings/F021-admin-ui-v1-environment.md)).
 
 You can install this Admin User Interface using Helm:
 
 ```shell
-helm install admin oci://docker.io/salaboy/conference-admin --version v1.0.0
+helm install admin oci://ghcr.io/allensanborn/conference-admin --version v1.2.0 --set environmentNamespace=team-a
 ```
 
 Once installed you can port-forward to the Admin UI by running: 

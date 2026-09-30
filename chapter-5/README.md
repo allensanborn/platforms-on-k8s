@@ -186,7 +186,7 @@ Ok, now that we have our two databases and our message broker running, we need t
 For that, we will use the `app-values.yaml` file containing the configurations for the services to connect to our newly created databases. The book's chart `oci://registry-1.docker.io/salaboy/conference-app:v1.0.0` still embeds the Bitnami subcharts, so use this fork's `v1.1.0` (from the `chapter-5` directory):
 
 ```shell
-helm install conference oci://ghcr.io/allensanborn/conference-app --version v1.1.0 -n team-a -f app-values.yaml
+helm install conference oci://ghcr.io/allensanborn/conference-app --version v1.2.0 -n team-a -f app-values.yaml
 ```
 
 (Alternative, from the repository root: `helm dependency update conference-application/helm/conference-app && helm install conference conference-application/helm/conference-app -n team-a -f chapter-5/app-values.yaml`.)

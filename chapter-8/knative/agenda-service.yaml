@@ -6,7 +6,7 @@ spec:
   template:
     spec:
       containers:
-        - image: salaboy/agenda-service-0967b907d9920c99918e2b91b91937b3:v1.0.0 
+        - image: ghcr.io/allensanborn/agenda-service-0967b907d9920c99918e2b91b91937b3:v1.2.0 
           env:
           - name: KAFKA_URL
             value: kafka-kafka-bootstrap.default.svc.cluster.local

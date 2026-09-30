@@ -100,14 +100,14 @@ You can point your browser to [http://localhost:3000/](http://localhost:3000/). 
 Let's now deploy the Conference Application as we did in Chapter 2: 
 
 ```shell
-helm install conference oci://ghcr.io/allensanborn/conference-app --version v1.1.0
+helm install conference oci://ghcr.io/allensanborn/conference-app --version v1.2.0
 ```
 
 Check both Jaeger and Grafana Keptn Dashboards, as by default, Keptn Workloads will track the deployment frequency. 
 
 In Grafana go to `Dashboards` -> `Keptn Applications`.  You will see a drop-down that allows you to select the different applications services. Check the Notifications Service. Because we’ve only deployed the first version of the deployment, there is not much to see, but the dashboard will become more interesting after we release new versions of our services.
 
-For example, edit the notifications-service deployment and update the `app.kubernetes.io/version` annotation to have the value `v1.1.0` and update the tag used for the container image to be `v1.1.0`
+For example, edit the notifications-service deployment and update the `app.kubernetes.io/version` annotation to have the value `v1.3.0` and update the tag used for the container image to be `v1.1.0`
 
 ```shell
 kubectl edit deploy conference-notifications-service-deployment

@@ -9,7 +9,7 @@ This chart doesn't depend on anything to be installed in the target Kubernetes C
 
 
 ```shell
-helm install conference oci://ghcr.io/allensanborn/conference-app --version v1.1.0 -n chapter02
+helm install conference oci://ghcr.io/allensanborn/conference-app --version v1.2.0 -n chapter02
 ```
 
 Chart parameters: 

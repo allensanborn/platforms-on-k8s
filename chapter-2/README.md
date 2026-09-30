@@ -139,10 +139,10 @@ helm upgrade --install strimzi oci://quay.io/strimzi-helm/strimzi-kafka-operator
 
 ## Installing the Conference Application
 
-From Helm 3.7+, we can use OCI images to publish, download, and install Helm Charts. The book's chart, `oci://docker.io/salaboy/conference-app:v1.0.0`, still depends on the Bitnami images, so this fork publishes the updated chart to GitHub Container Registry as `v1.1.0`:
+From Helm 3.7+, we can use OCI images to publish, download, and install Helm Charts. The book's chart, `oci://docker.io/salaboy/conference-app:v1.0.0`, still depends on the Bitnami images, so this fork publishes the updated chart, and images rebuilt from this repository, to GitHub Container Registry as `v1.2.0`:
 
 ```shell
-helm install conference oci://ghcr.io/allensanborn/conference-app --version v1.1.0
+helm install conference oci://ghcr.io/allensanborn/conference-app --version v1.2.0
 ```
 
 (Alternative: install from the repository checkout with `helm dependency update conference-application/helm/conference-app && helm install conference conference-application/helm/conference-app`.)
@@ -150,7 +150,7 @@ helm install conference oci://ghcr.io/allensanborn/conference-app --version v1.1
 You can also run the following command to see the details of the chart: 
 
 ```shell
-helm show all oci://ghcr.io/allensanborn/conference-app --version v1.1.0
+helm show all oci://ghcr.io/allensanborn/conference-app --version v1.2.0
 ```
 
 Check that all the application pods are up and running. 
