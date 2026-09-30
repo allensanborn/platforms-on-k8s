@@ -16,7 +16,16 @@ To build this example, we will use Crossplane and `vcluster`, two Open Source pr
 
 To install Crossplane, you need to have a Kubernetes Cluster; you can create one using KinD as we did for you [Chapter 2](../chapter-2/README.md#creating-a-local-cluster-with-kubernetes-kind). 
 
-Then you can install Crossplane and the Crossplane Helm Provider in your cluster as we did in [Chapter 5](https://github.com/salaboy/platforms-on-k8s/tree/main/chapter-5#installing-crossplane)
+Then you can install Crossplane (v2) and `function-patch-and-transform` in your cluster as we did in [Chapter 5](../chapter-5/README.md#installing-crossplane). This chapter also needs the Crossplane Helm provider (v1.4.0) and a cluster-wide `ClusterProviderConfig` named `default` that lets it install charts into the host cluster:
+
+```shell
+kubectl apply -f ../chapter-5/crossplane/helm-provider.yaml
+kubectl wait provider/provider-helm --for=condition=Healthy --timeout=300s
+kubectl apply -f crossplane/helm-provider-config.yaml
+```
+
+> [!Important]
+> Updated for **Crossplane v2** and **vcluster 0.37.2** (tested on kind, September 2026). `Environment` is now a **namespaced** composite resource with no claim: a team creates it in its own namespace, and the vcluster runs there. The Composition is a function pipeline, and it uses provider-helm's namespaced `helm.m.crossplane.io` Releases and ProviderConfigs. The Conference chart's infrastructure is now operator-based (see [Chapter 2](../chapter-2/README.md#installing-the-infrastructure-operators)), so the Composition installs the CloudNativePG and Strimzi operators *inside* each vcluster before the application. The application chart comes from a chart archive packaged in this repository ([`charts/`](charts/)), because the published `oci://docker.io/salaboy/conference-app:v1.0.0` still uses Bitnami images.
 
 We will use [`vcluster`](https://www.vcluster.com/) in this tutorial, but there is no need to install anything in our cluster for vcluster to work. We need the `vcluster` CLI to connect to our `vcluster`s you can install it by following the instructions on the official site: [https://www.vcluster.com/docs/getting-started/setup](https://www.vcluster.com/docs/getting-started/setup)
 
@@ -60,18 +69,22 @@ apiVersion: salaboy.com/v1alpha1
 kind: Environment
 metadata:
   name: team-a-dev-env
+  namespace: team-a
 spec:
-  compositionSelector:
-    matchLabels:
-      type: development
-  parameters: 
+  crossplane:
+    compositionSelector:
+      matchLabels:
+        type: development
+  parameters:
     installInfra: true
-    
+    frontend:
+      debug: true
 ```
 
 Once sent to the cluster, the Crossplane Composition will kick in and create a new `vcluster` with an instance of the Conference Application inside. 
 
 ```shell
+kubectl create namespace team-a
 kubectl apply -f team-a-dev-env.yaml
 ```
 You should see: 
@@ -83,66 +96,50 @@ environment.salaboy.com/team-a-dev-env created
 You can always check the state of your Environments by running: 
 
 ```shell
-> kubectl get env
-NAME             CONNECT-TO             TYPE          INFRA   DEBUG   SYNCED   READY   CONNECTION-SECRET   AGE
-team-a-dev-env   team-a-dev-env-jp7j4   development   true    true    True     False   team-a-dev-env      1s
-
+> kubectl get env -n team-a
+NAME             CONNECT-TO       TYPE          INFRA   DEBUG   SYNCED   READY   COMPOSITION           AGE
+team-a-dev-env   team-a-dev-env   development   true    true    True     True    dev.env.salaboy.com   3m41s
 ```
 
-You can check that Crossplane is creating and managing resources related to the composition by running: 
+The Composition creates five managed resources in the `team-a` namespace: the vcluster Release, a `ProviderConfig` pointing at the new vcluster, and three Releases installed *inside* the vcluster (the two operators and the application):
 
 ```shell
-> kubectl get managed
-NAME                            CHART            VERSION          SYNCED   READY   STATE      REVISION   DESCRIPTION        AGE
-team-a-dev-env-jp7j4-8lbtj      conference-app   v1.0.0           True     True    deployed   1          Install complete   57s
-team-a-dev-env-jp7j4-vcluster   vcluster         0.15.0-alpha.0   True     True    deployed   1          Install complete   57s
+> kubectl get releases.helm.m.crossplane.io -n team-a
+NAME                        CHART                    VERSION   SYNCED   READY   STATE      REVISION   DESCRIPTION        AGE
+team-a-dev-env              vcluster                 0.37.2    True     True    deployed   1          Install complete   3m40s
+team-a-dev-env-cnpg         cloudnative-pg           0.29.1    True     True    deployed   1          Install complete   3m40s
+team-a-dev-env-conference   conference-app           v1.1.0    True     True    deployed   1          Install complete   3m40s
+team-a-dev-env-strimzi      strimzi-kafka-operator   1.2.0     True     True    deployed   1          Install complete   3m39s
 ```
 
-These managed resources are no other than Helm Releases being created:
-
-```shell
-kubectl get releases
-NAME                            CHART            VERSION          SYNCED   READY   STATE      REVISION   DESCRIPTION        AGE
-team-a-dev-env-jp7j4-8lbtj      conference-app   v1.0.0           True     True    deployed   1          Install complete   45s
-team-a-dev-env-jp7j4-vcluster   vcluster         0.15.0-alpha.0   True     True    deployed   1          Install complete   45s
-```
-
+Creation is eventually consistent, so expect warning events on the inner Releases for the first minutes: the vcluster's kubeconfig Secret (`vc-team-a-dev-env`) doesn't exist yet, then the CloudNativePG and Strimzi CRDs or webhooks aren't ready when the application chart is first installed. provider-helm retries (the application Release sets `rollbackLimit: 3` so a failed first install is retried). `READY` on the Environment means the Helm releases are deployed; the application pods need a few more minutes for Kafka to start.
 
 Then we can connect to the provisioned environment by running (use the CONNECT-TO column for the vcluster name): 
 ```shell
-vcluster connect team-a-dev-env-jp7j4 --server https://localhost:8443 -- zsh
+vcluster connect team-a-dev-env -n team-a
 ```
 
-Once you are connected to the `vcluster` you are in a different Kubernetes Cluster, so if you list all the available namespaces, you should see: 
+Once you are connected to the `vcluster` you are in a different Kubernetes Cluster, so if you list all the available namespaces, you should see `cnpg-system` and `strimzi` (the operators) but not `crossplane-system`. If you list all the pods in the `default` namespace, you should see all the application pods running: 
 
 ```shell
-kubectl get ns
-NAME              STATUS   AGE
-default           Active   64s
-kube-system       Active   64s
-kube-public       Active   64s
-kube-node-lease   Active   64s
-```
-
-As you can see, Crossplane is not installed here. But if you list all the pods in this cluster, you should see all the application pods running: 
-
-```shell
-NAME                                                              READY   STATUS    RESTARTS      AGE
-conference-app-kafka-0                                            1/1     Running   0             103s
-conference-app-postgresql-0                                       1/1     Running   0             103s
-conference-app-c4p-service-deployment-57d4ddcd68-45f6h            1/1     Running   2 (99s ago)   104s
-conference-app-agenda-service-deployment-9bf7946c9-mmx8h          1/1     Running   2 (98s ago)   104s
-conference-app-redis-master-0                                     1/1     Running   0             103s
-conference-app-frontend-deployment-c8c64c54d-lntnw                1/1     Running   2 (98s ago)   104s
-conference-app-notifications-service-deployment-64ff7bcdf8nbvhl   1/1     Running   3 (80s ago)   104s
+NAME                                                           READY   STATUS    RESTARTS      AGE
+conference-agenda-service-deployment-69d8ffc5f7-fkwjs          1/1     Running   3 (50s ago)   72s
+conference-c4p-service-deployment-689ccc8778-h8p44             1/1     Running   3 (53s ago)   72s
+conference-conference-dual-role-0                              1/1     Running   0             65s
+conference-entity-operator-76699f9d75-txttp                    1/1     Running   0             23s
+conference-frontend-deployment-689884567b-s98zx                1/1     Running   3 (51s ago)   72s
+conference-notifications-service-deployment-568c97bb54-prltv   1/1     Running   3 (49s ago)   72s
+conference-postgresql-1                                        1/1     Running   0             49s
+conference-redis-867cb66d5f-pg98p                              1/1     Running   0             72s
 ```
 
 You can also do port-forwarding to this cluster, to access the application using:
 ```shell
 kubectl port-forward svc/frontend 8080:80
 ```
-Now your application is available at [http://localhost:8080](http://localhost:8080)
+Now your application is available at [http://localhost:8080](http://localhost:8080). Because the Environment set `frontend.debug: true`, `curl http://localhost:8080/api/features/` returns `"DebugEnabled":"true"`.
 
+How the Composition reaches the vcluster: vcluster writes a kubeconfig to the Secret `vc-<name>` (key `config`) in the team namespace, with the server set by the chart value `exportKubeConfig.server`. The Composition sets it to `https://<name>.<namespace>:443`. Don't add `.svc`: vcluster 0.37's serving certificate lists `<name>` and `<name>.<namespace>` but not `<name>.<namespace>.svc`, and provider-helm then fails with `x509: certificate is valid for ..., not team-a-dev-env.team-a.svc`. No `insecure` flag or extra SANs are needed with the shorter name.
 
 You can exit the `vcluster` context by typing `exit` in the terminal.
 
@@ -154,6 +151,9 @@ We can go one step further to simplify the interaction with the platform APIs, p
 In this short section, we deploy an Admin User Interface that allows teams to request new environments using a website, or a set of simplified REST APIs. 
 
 Before installing the Admin User Interface, you need to make sure that you are not inside a `vcluster` session. (You can exit the `vcluster` context by typing `exit` in the terminal). Check that you have the `crossplane-system` namespaces in the current cluster where you are connected. 
+
+> [!Warning]
+> **Not updated for Crossplane v2 (untested).** The Admin application (`conference-admin/admin-go`) still writes the v1 shape of `Environment`: `spec.compositionSelector` at the top level and `spec.writeConnectionSecretToRef`, with no namespace handling for a namespaced XR. Making it work needs Go changes (`api/types/v1alpha1/environment.go` and the client calls) and a rebuilt image, which this update doesn't include.
 
 You can install this Admin User Interface using Helm:
 
@@ -209,6 +209,8 @@ This application serves as a facade between Kubernetes and the outside world. De
 
 
 ## Clean up
+
+Deleting an Environment deletes its vcluster, and everything inside it with it (`kubectl delete -f team-a-dev-env.yaml`). The Releases installed inside the vcluster use `managementPolicies` without `Delete`, because once the vcluster is gone they could never reach it to uninstall and would hang on their finalizers. vcluster's own PersistentVolumeClaim (`data-team-a-dev-env-0`) is kept by Helm; delete it before re-creating an Environment with the same name.
 
 If you want to get rid of the KinD Cluster created for these tutorials, you can run:
 

@@ -33,7 +33,7 @@ spec:
                 version: "0.37.2"
               values:
                 exportKubeConfig:
-                  server: ""   # patched to https://<name>.<namespace>.svc:443
+                  server: ""   # patched to https://<name>.<namespace>:443
             providerConfigRef:
               kind: ClusterProviderConfig
               name: default
@@ -49,7 +49,7 @@ spec:
             - fromFieldPath: metadata.namespace
             strategy: string
             string:
-              fmt: "https://%s.%s.svc:443"
+              fmt: "https://%s.%s:443"   # <name>.<namespace> is in the vcluster cert SANs; <name>.<namespace>.svc is not
           toFieldPath: spec.forProvider.values.exportKubeConfig.server
       - name: vcluster-provider-config
         base:
@@ -84,6 +84,9 @@ spec:
             annotations:
               crossplane.io/external-name: cnpg
           spec:
+            # No Delete: removing the vcluster removes everything inside it, and a
+            # Release whose vcluster is already gone could never finish deleting.
+            managementPolicies: ["Observe", "Create", "Update", "LateInitialize"]
             forProvider:
               namespace: cnpg-system
               wait: true
@@ -111,6 +114,9 @@ spec:
             annotations:
               crossplane.io/external-name: strimzi
           spec:
+            # No Delete: removing the vcluster removes everything inside it, and a
+            # Release whose vcluster is already gone could never finish deleting.
+            managementPolicies: ["Observe", "Create", "Update", "LateInitialize"]
             forProvider:
               namespace: strimzi
               wait: true
@@ -140,6 +146,12 @@ spec:
             annotations:
               crossplane.io/external-name: conference
           spec:
+            # No Delete: removing the vcluster removes everything inside it, and a
+            # Release whose vcluster is already gone could never finish deleting.
+            managementPolicies: ["Observe", "Create", "Update", "LateInitialize"]
+            # the first install can fail while the CloudNativePG webhook starts;
+            # rollbackLimit makes provider-helm retry a failed release
+            rollbackLimit: 3
             forProvider:
               namespace: default
               chart:
