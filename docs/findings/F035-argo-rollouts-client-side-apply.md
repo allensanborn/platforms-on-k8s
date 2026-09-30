@@ -3,7 +3,7 @@
 - **Chapter:** 8
 - **Severity:** medium
 - **Status:** fixed
-- **Fix commit:** PENDING
+- **Fix commit:** 571afcd
 - **Found:** 2026-09-30, branch `crossplane-v2-and-bitnami-replacements`
 
 ## Symptom

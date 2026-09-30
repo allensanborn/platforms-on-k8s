@@ -39,6 +39,6 @@ Sources the findings were checked against: the llm-wiki page *Platform Engineeri
 | [F031](F031-tool-version-drift.md) | Tool versions drifted in chapters not updated here | 4, 7, 8, 9 | info | documented | — |
 | [F032](F032-argocd-client-side-apply-too-long.md) | Argo CD install fails with client-side apply (CRD annotation too long) | 4 | medium | fixed | fa1df29 |
 | [F033](F033-argocd-staging-bitnami-values.md) | Chapter-4 staging config used Bitnami value paths and a stale manifest dump | 4 | high | fixed (umbrella via Argo CD blocked on public GHCR) | fa1df29 |
-| [F034](F034-chapter8-bitnami-infra.md) | Chapter 8 installed Kafka, PostgreSQL and Redis from Bitnami charts | 8 | high | fixed | PENDING |
-| [F035](F035-argo-rollouts-client-side-apply.md) | Argo Rollouts install fails with client-side apply (CRD annotation too long) | 8 | medium | fixed | PENDING |
-| [F036](F036-chapter8-name-clash-and-knative-drift.md) | Knative and Argo Rollouts tutorials clash on one cluster; Knative pinned at 1.10 | 8 | low | documented | PENDING |
+| [F034](F034-chapter8-bitnami-infra.md) | Chapter 8 installed Kafka, PostgreSQL and Redis from Bitnami charts | 8 | high | fixed | 571afcd |
+| [F035](F035-argo-rollouts-client-side-apply.md) | Argo Rollouts install fails with client-side apply (CRD annotation too long) | 8 | medium | fixed | 571afcd |
+| [F036](F036-chapter8-name-clash-and-knative-drift.md) | Knative and Argo Rollouts tutorials clash on one cluster; Knative pinned at 1.10 | 8 | low | documented | 571afcd |
