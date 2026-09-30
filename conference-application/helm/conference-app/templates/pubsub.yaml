@@ -8,6 +8,6 @@ spec:
   version: v1
   metadata:
   - name: brokers # Required. Kafka broker connection setting
-    value:  {{ .Release.Name }}-kafka.{{ .Release.Namespace }}.svc.cluster.local:9092
+    value:  {{ .Release.Name }}-kafka-bootstrap.{{ .Release.Namespace }}.svc.cluster.local:9092
   - name: authType
     value: "none"  

@@ -27,10 +27,21 @@ Once Dapr is installed, we can install our Dapr-Enabled and FeatureFlag-Enabled 
 
 # Running v2.0.0
 
-Now you can install v2.0.0 of the application by running: 
+> [!Important]
+> Updated September 2026 on branch `v2.0.0-bitnami-replacements` of the fork [allensanborn/platforms-on-k8s](https://github.com/allensanborn/platforms-on-k8s). The published `oci://docker.io/salaboy/conference-app:v2.0.0` depends on Bitnami images that are no longer published. This branch's chart (`v2.1.0`) uses the official Valkey chart, a CloudNativePG `Cluster` and Strimzi Kafka instead, so install the two operators first:
+>
+> ```
+> helm upgrade --install cnpg cloudnative-pg --repo https://cloudnative-pg.github.io/charts --version 0.29.1 --namespace cnpg-system --create-namespace --wait
+> helm upgrade --install strimzi oci://quay.io/strimzi-helm/strimzi-kafka-operator --version 1.2.0 --namespace strimzi --create-namespace --set watchAnyNamespace=true --wait
+> ```
+>
+> Details and test evidence: `docs/findings/` on the `crossplane-v2-and-bitnami-replacements` branch (F039).
+
+Now you can install the Dapr version of the application from this branch (the chart is not published to a registry yet):
 
 ```
-helm install conference oci://docker.io/salaboy/conference-app --version v2.0.0
+helm dependency update conference-application/helm/conference-app
+helm install conference conference-application/helm/conference-app
 ```
 
 This version of the Helm Chart installs the same application infrastructure as version `v1.0.0` (PostgreSQL, Redis, and Kafka). Services now interact with Redis and Kafka are now using Dapr APIs. This version of the Application also adds OpenFeature Feature Flags using `flagd`.
@@ -42,14 +53,15 @@ In version `v2.0.0`, if you list the Application pods now, you will see that eac
 ```
 > kubectl get pods
 NAME                                                           READY   STATUS    RESTARTS      AGE
-conference-agenda-service-deployment-5dd4bf67b-qkctd           2/2     Running   7 (7s ago)    74s
-conference-c4p-service-deployment-57b5985757-tdqg4             2/2     Running   6 (19s ago)   74s
-conference-frontend-deployment-69d9b479b7-th44h                2/2     Running   2 (68s ago)   74s
-conference-kafka-0                                             1/1     Running   0             74s
-conference-notifications-service-deployment-7b6cbf965d-2pdkh   2/2     Running   6 (42s ago)   74s
-conference-postgresql-0                                        1/1     Running   0             74s
-conference-redis-master-0                                      1/1     Running   0             74s
-flagd-6bbdc5d999-c42wk                                         1/1     Running   0             74s
+conference-agenda-service-deployment-7cc8c94889-k297r         2/2     Running   4 (22s ago)   71s
+conference-c4p-service-deployment-9f5c9bb94-svjsq             2/2     Running   4 (26s ago)   71s
+conference-conference-dual-role-0                             1/1     Running   0             70s
+conference-entity-operator-f66946cd8-qpzlq                    1/1     Running   0             41s
+conference-frontend-deployment-69d7d8468c-tmbp9               2/2     Running   2 (24s ago)   71s
+conference-notifications-service-deployment-f44669c96-wbjjm   2/2     Running   4 (24s ago)   71s
+conference-postgresql-1                                       1/1     Running   0             55s
+conference-redis-5895ff567d-n9bwb                             1/1     Running   0             71s
+flagd-5fd99585d5-2vcgv                                        1/1     Running   0             71s
 ```
 
 Notice the `flagd` container also running. We will cover this in the next section.
@@ -91,7 +103,7 @@ Spec:
     Name:   keyPrefix
     Value:  name
     Name:   redisHost
-    Value:  conference-redis-master.default.svc.cluster.local:6379
+    Value:  conference-redis.default.svc.cluster.local:6379
     Name:   redisPassword
     Secret Key Ref:
       Key:   redis-password
@@ -102,7 +114,7 @@ Events:      <none>
 
 ```
 
-You can see that the Statestore component is connecting to the Redis instance exposed by this service name `conference-redis-master.default.svc.cluster.local` and using the `conference-redis` secret to obtain the password to connect.
+You can see that the Statestore component is connecting to the Redis instance exposed by this service name `conference-redis.default.svc.cluster.local` and using the `conference-redis` secret to obtain the password to connect.
 
 Similarly, the PubSub Dapr Component that is connecting to Kafka: 
 

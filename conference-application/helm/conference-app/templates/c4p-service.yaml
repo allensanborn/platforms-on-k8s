@@ -20,6 +20,9 @@ spec:
         app.kubernetes.io/version: {{ .Values.services.tag  }}
         keptn.sh/post-deployment-tasks: stdout-notification
     spec:
+{{- if .Values.install.infrastructure }}
+{{ include "conference-app.waitFor" (list (printf "%s-kafka-bootstrap.%s.svc.cluster.local:9092" $.Release.Name $.Release.Namespace) (printf "%s-postgresql-rw.%s.svc.cluster.local:5432" $.Release.Name $.Release.Namespace)) | indent 6 }}
+{{- end }}
       containers:
       - name: c4p-service
         image: "{{ .Values.services.registry }}/{{ .Values.services.c4p.image }}:{{ .Values.services.tag }}"
@@ -33,12 +36,12 @@ spec:
           value: {{ .Release.Name }}-conference-pubsub  
 {{- if .Values.install.infrastructure }} 
         - name: POSTGRES_HOST
-          value: {{ .Release.Name }}-postgresql.{{ .Release.Namespace }}.svc.cluster.local
+          value: {{ .Release.Name }}-postgresql-rw.{{ .Release.Namespace }}.svc.cluster.local
         - name: POSTGRES_PASSWORD
           valueFrom:
             secretKeyRef:
-              name: {{ .Release.Name }}-postgresql
-              key: postgres-password 
+              name: {{ .Release.Name }}-postgresql-superuser
+              key: password
 {{- else }}
         - name: POSTGRES_HOST
           value: {{ .Values.c4p.postgresql.host}}
@@ -46,7 +49,7 @@ spec:
           valueFrom:
             secretKeyRef:
               name: {{ .Values.c4p.postgresql.secretName}}
-              key: postgres-password 
+              key: {{ .Values.c4p.postgresql.secretKey | default "password" }}
 {{- end }}                
         - name: POD_NODENAME
           valueFrom:

@@ -1,7 +1,7 @@
 apiVersion: v2
 description: A Helm chart for the Conference App
 name: conference-app
-version: v2.0.0
+version: v2.1.0
 type: application
 icon: https://www.salaboy.com/content/images/2023/06/avatar-new.png
 appVersion: v2.0.0
@@ -11,17 +11,13 @@ maintainers:
     url: http://salaboy.com
 home: http://github.com/salaboy/platforms-on-k8s
 dependencies:
-  - name: redis
-    version: 17.11.3
-    repository: oci://registry-1.docker.io/bitnamicharts
-    condition: install.infrastructure
-  - name: postgresql
-    version: 12.5.9
-    repository: oci://registry-1.docker.io/bitnamicharts
-    condition: install.infrastructure
-  - name: kafka
-    version: 22.1.5
-    repository: oci://registry-1.docker.io/bitnamicharts
+  # Bitnami's versioned images were removed from docker.io/bitnami in Aug 2025.
+  # Redis -> official Valkey chart (aliased so values and resource names stay `redis`).
+  # PostgreSQL and Kafka are operator-managed (CloudNativePG, Strimzi); see templates/infrastructure.yaml.
+  - name: valkey
+    alias: redis
+    version: 0.12.0
+    repository: https://valkey.io/valkey-helm/
     condition: install.infrastructure
 keywords:
   - cloudnative
