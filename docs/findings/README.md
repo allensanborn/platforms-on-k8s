@@ -45,9 +45,9 @@ Discrepancies with the two source documents each have their own finding:
 | [F035](F035-argo-rollouts-client-side-apply.md) | Argo Rollouts install fails with client-side apply (CRD annotation too long) | 8 | medium | fixed | 571afcd |
 | [F036](F036-chapter8-name-clash-and-knative-drift.md) | Knative and Argo Rollouts tutorials clash on one cluster; Knative pinned at 1.10 | 8 | low | documented | 571afcd |
 | [F037](F037-chapter9-dora-bitnami-postgresql.md) | Chapter 9 DORA demo installed PostgreSQL from the Bitnami chart | 9 | high | fixed | c4e4279 |
-| [F038](F038-keptn-klt-chart-renamed.md) | Keptn tutorial installs the frozen `klt` chart | 9 | medium | documented (untested) | — |
+| [F038](F038-keptn-klt-chart-renamed.md) | Keptn tutorial installs the frozen `klt` chart | 9 | medium | superseded by [F060](F060-keptn-archived-tutorial-replaced.md) | — |
 | [F039](F039-chapter7-v2-chart-bitnami.md) | Chapter 7's Dapr chart (v2.0.0) has the same Bitnami dependencies | 7 | high | fixed on branch `v2.0.0-bitnami-replacements` | a62e4bd (other branch) |
-| [F040](F040-keptn-observability-stack.md) | The Keptn chapter's observability install no longer completes | 9 | medium | superseded by F060 (keptn-current) | 47641bd |
+| [F040](F040-keptn-observability-stack.md) | The Keptn chapter's observability install no longer completes | 9 | medium | superseded by [F060](F060-keptn-archived-tutorial-replaced.md) | 47641bd |
 | [F041](F041-translated-readmes-stale.md) | Translated READMEs still carry the old commands | 2-9 | low | open | — |
 | [F042](F042-chapter6-packaged-chart-removed.md) | Removed the packaged chart copy from chapter 6 | 6 | info | documented (decision) | cdf1e79 |
 | [F043](F043-upstream-v3-chart.md) | Upstream's published `conference-app:v3.0.0` has no source in the repo and doesn't include infrastructure | 7 (and later) | info | documented | — |
@@ -58,3 +58,7 @@ Discrepancies with the two source documents each have their own finding:
 | [F048](F048-committed-binaries.md) | Compiled binaries are committed in the repo | 6, dev loop | info | documented | — |
 | [F049](F049-ghcr-package-repo-link.md) | GHCR image packages weren't linked to the fork repository | all | low | fixed for future pushes; existing packages need a manual link | fcc3ae4 |
 | [F050](F050-keptn-labels-removed.md) | Removed the dead `keptn.sh/post-deployment-tasks` labels from the Conference charts | 2, 7, 9 | low | fixed | fcc3ae4 |
+| [F060](F060-keptn-archived-tutorial-replaced.md) | Keptn is archived; the Keptn tutorial now uses Argo CD, Argo Rollouts, Prometheus/Grafana and Jaeger v2 | 9 | high | fixed | branch `keptn-current` |
+| [F061](F061-chart-dead-keptn-label.md) | The Conference chart still puts a dead `keptn.sh/post-deployment-tasks` label on every service | 2-9 | low | fixed by [F050](F050-keptn-labels-removed.md) | fcc3ae4 |
+| [F062](F062-argocd-sync-traces-need-3-6.md) | Argo CD only exports sync traces from 3.6; the tutorial pins v3.6.0-rc1 | 9 | medium | documented | branch `keptn-current` |
+| [F063](F063-argocd-release-candidate-pin.md) | The Keptn-replacement tutorial pins an Argo CD release candidate (v3.6.0-rc1) | 9 | low | open | — |

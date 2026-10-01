@@ -1,5 +1,8 @@
 # Keptn 生命周期工具集的部署频率数据
 
+> [!Important]
+> Out of date (September 2026): Keptn was archived by the CNCF, and this tutorial was rewritten for Argo CD, Argo Rollouts, Prometheus/Grafana and Jaeger v2. The commands below no longer work; follow the [English README](README.md).
+
 本文介绍使用 Keptn 生命周期工具集监控、观察云原生应用程序的生命周期事件并作出反应。
 
 ## 安装

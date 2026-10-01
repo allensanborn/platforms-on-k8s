@@ -7,6 +7,9 @@ _🌍 利用可能な言語_: [English](README.md) | [中文 (Chinese)](README-z
 
 ---
 
+> [!Important]
+> Out of date (September 2026): Keptn was archived by the CNCF, and this tutorial was rewritten for Argo CD, Argo Rollouts, Prometheus/Grafana and Jaeger v2. The commands below no longer work; follow the [English README](README.md).
+
 この短いチュートリアルでは、Keptn Lifecycle Toolkitを使用して、クラウドネイティブアプリケーションのライフサイクルイベントをモニタリング、観察、対応する方法を探ります。
 
 ## インストール

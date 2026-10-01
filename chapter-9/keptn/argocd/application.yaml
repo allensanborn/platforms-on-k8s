@@ -1,0 +1,28 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: conference
+  namespace: argocd
+spec:
+  project: default
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: default
+  sources:
+  # the Conference application, straight from its OCI Helm chart
+  - repoURL: ghcr.io/allensanborn
+    chart: conference-app
+    targetRevision: v1.1.0
+    helm:
+      releaseName: conference
+      valuesObject:
+        install:
+          # no ingress controller in this cluster; an Ingress without one never turns Healthy,
+          # and Argo CD only runs PostSync hooks once everything is Healthy
+          ingress: false
+  # the post-deployment task (PostSync hook). Point this at your fork and the branch that has this directory.
+  - repoURL: https://github.com/allensanborn/platforms-on-k8s.git
+    targetRevision: crossplane-v2-and-bitnami-replacements
+    path: chapter-9/keptn/hooks
+  syncPolicy:
+    automated: {}
