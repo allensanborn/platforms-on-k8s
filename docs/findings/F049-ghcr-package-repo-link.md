@@ -3,7 +3,7 @@
 - **Chapter:** all
 - **Severity:** low
 - **Status:** fixed for future pushes; existing packages need a manual link
-- **Fix commit:** PENDING
+- **Fix commit:** fcc3ae4
 - **Found:** 2026-09-30, branch `crossplane-v2-and-bitnami-replacements`
 
 ## Symptom

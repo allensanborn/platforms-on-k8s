@@ -56,5 +56,5 @@ Discrepancies with the two source documents each have their own finding:
 | [F046](F046-chapter8-demo-versions.md) | Chapter 8 release demos need two image versions; the fork publishes v1.2.0 and v1.3.0 | 8, 9 (keptn) | low | documented | f03c06d, cdf1e79 |
 | [F047](F047-admin-go-test-flag-parse.md) | admin-go's `go test` failed because `flag.Parse()` ran in `init()` | 6 | low | fixed | f03c06d |
 | [F048](F048-committed-binaries.md) | Compiled binaries are committed in the repo | 6, dev loop | info | documented | — |
-| [F049](F049-ghcr-package-repo-link.md) | GHCR image packages weren't linked to the fork repository | all | low | fixed for future pushes; existing packages need a manual link | PENDING |
-| [F050](F050-keptn-labels-removed.md) | Removed the dead `keptn.sh/post-deployment-tasks` labels from the Conference charts | 2, 7, 9 | low | fixed | PENDING |
+| [F049](F049-ghcr-package-repo-link.md) | GHCR image packages weren't linked to the fork repository | all | low | fixed for future pushes; existing packages need a manual link | fcc3ae4 |
+| [F050](F050-keptn-labels-removed.md) | Removed the dead `keptn.sh/post-deployment-tasks` labels from the Conference charts | 2, 7, 9 | low | fixed | fcc3ae4 |
