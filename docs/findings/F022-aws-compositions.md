@@ -2,7 +2,7 @@
 
 - **Chapter:** 5 (aws)
 - **Severity:** medium
-- **Status:** fixed (untested against AWS)
+- **Status:** fixed (run end to end against Floci 2.1.0, see F080-F083; not against a real AWS account)
 - **Fix commit:** 12e796d
 - **Found:** 2026-09-30, branch `crossplane-v2-and-bitnami-replacements`
 
@@ -24,7 +24,7 @@ Pipeline Compositions over namespaced `elasticache.aws.m.upbound.io/v1beta1 Clus
 
 ## How to verify
 
-Apply against an AWS account (not done).
+Run `chapter-5/aws/README.md` against Floci (done, F083) or an AWS account (not done).
 
 ## Upstream relevance
 

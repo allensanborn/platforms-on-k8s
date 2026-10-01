@@ -1,0 +1,37 @@
+# Floci-only overlay: use this INSTEAD of the AWS credentials Secret and ClusterProviderConfig
+# from the README when the "AWS account" is a local Floci (https://github.com/floci-io/floci).
+# Floci accepts any non-empty credentials. `endpoint.services` is required: provider-upjet-aws
+# only redirects the services listed there, everything else would still go to real AWS.
+apiVersion: v1
+kind: Secret
+metadata:
+  name: aws-secret
+  namespace: crossplane-system
+stringData:
+  creds: |
+    [default]
+    aws_access_key_id = test
+    aws_secret_access_key = test
+---
+apiVersion: aws.m.upbound.io/v1beta1
+kind: ClusterProviderConfig
+metadata:
+  name: default
+spec:
+  credentials:
+    source: Secret
+    secretRef:
+      namespace: crossplane-system
+      name: aws-secret
+      key: creds
+  endpoint:
+    url:
+      type: Static
+      static: http://floci:4566
+    hostnameImmutable: true
+    source: Custom
+    services: [ec2, elasticache, kafka, rds, sts]
+  skip_credentials_validation: true
+  skip_metadata_api_check: true
+  skip_region_validation: true
+  skip_requesting_account_id: true

@@ -1,22 +1,25 @@
+# Fill the three placeholders from the managed resources' status, as shown in the README:
+#   KAFKA_BOOTSTRAP  first broker of status.atProvider.bootstrapBrokers on the MSK Cluster
+#   REDIS_HOST       primary (or configuration) endpoint address of the ElastiCache ReplicationGroup
+#   POSTGRES_HOST    `address` key of the aws-db-sql-postgres-connection Secret
 install:
   infrastructure: false
 frontend:
   kafka:
-    url: #aws-kafka-endpoint
+    url: KAFKA_BOOTSTRAP
 agenda:
   kafka:
-    url: #aws-kafka-endpoint
-  redis: 
-    host: #aws-redis-endpoint
-    # ElastiCache without auth: leave secretName unset
-c4p: 
+    url: KAFKA_BOOTSTRAP
+  redis:
+    host: REDIS_HOST
+    # The ReplicationGroup has no auth token: leave secretName unset
+c4p:
   kafka:
-    url: #aws-kafka-endpoint
+    url: KAFKA_BOOTSTRAP
   postgresql:
-    host: #aws-psql-endpoint
+    host: POSTGRES_HOST
     secretName: aws-db-sql-postgres-password
     secretKey: password
-
-notifications: 
+notifications:
   kafka:
-    url: #aws-kafka-endpoint
+    url: KAFKA_BOOTSTRAP

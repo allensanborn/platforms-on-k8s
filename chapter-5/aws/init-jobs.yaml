@@ -1,0 +1,59 @@
+# One-off setup the local Compositions get from Strimzi and CloudNativePG, which nothing does for
+# MSK and RDS: create the events-topic (MSK does not auto-create topics by default) and the
+# c4p-service proposals table. The topic Job reads the bootstrap brokers from the aws-endpoints
+# ConfigMap (see the README); the SQL Job reads the RDS connection Secret.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: c4p-init-sql
+  namespace: team-a
+data:
+  init.sql: |-
+    CREATE TABLE IF NOT EXISTS proposals( id VARCHAR PRIMARY KEY NOT NULL, title VARCHAR NOT NULL, description TEXT NOT NULL, author VARCHAR NOT NULL, email VARCHAR NOT NULL, approved boolean, status VARCHAR NOT NULL);
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: c4p-init-sql
+  namespace: team-a
+spec:
+  backoffLimit: 6
+  template:
+    spec:
+      restartPolicy: OnFailure
+      containers:
+      - name: psql
+        image: postgres:17-alpine
+        command: ["sh", "-c", "psql -v ON_ERROR_STOP=1 -h \"$PGHOST\" -p \"$PGPORT\" -U \"$PGUSER\" -d postgres -f /sql/init.sql"]
+        env:
+        - name: PGHOST
+          valueFrom: {secretKeyRef: {name: aws-db-sql-postgres-connection, key: address}}
+        - name: PGPORT
+          valueFrom: {secretKeyRef: {name: aws-db-sql-postgres-connection, key: port}}
+        - name: PGUSER
+          valueFrom: {secretKeyRef: {name: aws-db-sql-postgres-connection, key: username}}
+        - name: PGPASSWORD
+          valueFrom: {secretKeyRef: {name: aws-db-sql-postgres-password, key: password}}
+        volumeMounts:
+        - {name: sql, mountPath: /sql}
+      volumes:
+      - name: sql
+        configMap: {name: c4p-init-sql}
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: events-topic
+  namespace: team-a
+spec:
+  backoffLimit: 6
+  template:
+    spec:
+      restartPolicy: OnFailure
+      containers:
+      - name: kafka-topics
+        image: apache/kafka:3.9.1
+        command: ["sh", "-c", "/opt/kafka/bin/kafka-topics.sh --bootstrap-server \"$BOOTSTRAP\" --create --if-not-exists --topic events-topic --partitions 1 --replication-factor 1"]
+        env:
+        - name: BOOTSTRAP
+          valueFrom: {configMapKeyRef: {name: aws-endpoints, key: kafka}}

@@ -1,0 +1,75 @@
+# Network for the MSK cluster: MSK needs one client subnet per broker, each in its own
+# availability zone, and a security group. The MSK Composition selects them by the label
+# platform.salaboy.com/msk: "true" in the XR's namespace. On a real account this creates a new VPC;
+# to use an existing one, import its subnets and security group instead and add the label.
+apiVersion: ec2.aws.m.upbound.io/v1beta1
+kind: VPC
+metadata:
+  name: msk-vpc
+  namespace: team-a
+  labels:
+    platform.salaboy.com/msk: "true"
+spec:
+  forProvider:
+    region: us-west-2
+    cidrBlock: 10.20.0.0/16
+  providerConfigRef:
+    kind: ClusterProviderConfig
+    name: default
+---
+apiVersion: ec2.aws.m.upbound.io/v1beta1
+kind: Subnet
+metadata:
+  name: msk-subnet-a
+  namespace: team-a
+  labels:
+    platform.salaboy.com/msk: "true"
+spec:
+  forProvider:
+    region: us-west-2
+    availabilityZone: us-west-2a
+    cidrBlock: 10.20.1.0/24
+    vpcIdSelector:
+      matchLabels:
+        platform.salaboy.com/msk: "true"
+  providerConfigRef:
+    kind: ClusterProviderConfig
+    name: default
+---
+apiVersion: ec2.aws.m.upbound.io/v1beta1
+kind: Subnet
+metadata:
+  name: msk-subnet-b
+  namespace: team-a
+  labels:
+    platform.salaboy.com/msk: "true"
+spec:
+  forProvider:
+    region: us-west-2
+    availabilityZone: us-west-2b
+    cidrBlock: 10.20.2.0/24
+    vpcIdSelector:
+      matchLabels:
+        platform.salaboy.com/msk: "true"
+  providerConfigRef:
+    kind: ClusterProviderConfig
+    name: default
+---
+apiVersion: ec2.aws.m.upbound.io/v1beta1
+kind: SecurityGroup
+metadata:
+  name: msk-sg
+  namespace: team-a
+  labels:
+    platform.salaboy.com/msk: "true"
+spec:
+  forProvider:
+    region: us-west-2
+    name: msk-sg
+    description: Conference app MSK brokers
+    vpcIdSelector:
+      matchLabels:
+        platform.salaboy.com/msk: "true"
+  providerConfigRef:
+    kind: ClusterProviderConfig
+    name: default
