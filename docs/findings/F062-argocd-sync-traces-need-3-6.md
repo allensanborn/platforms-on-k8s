@@ -2,13 +2,13 @@
 
 - **Chapter:** 9 (keptn)
 - **Severity:** medium
-- **Status:** documented
+- **Status:** documented (tested)
 - **Fix commit:** see branch `keptn-current`
 - **Found:** 2026-09-30, branch `keptn-current`
 
 ## Symptom
 
-On Argo CD v3.5.3 (the newest GA release, 2026-09-14), setting `otlp.address` produces spans only from `argocd-server` and `argocd-repo-server`. There are no spans for a sync, which is what replaces the book's Keptn lifecycle-operator trace.
+On Argo CD v3.5.3 (the newest GA release, 2026-09-14), with `otlp.address` set, Jaeger only receives `repository.RepoServerService/GenerateManifest` spans (from `argocd-controller` and `argocd-repo-server`) and `grpc.health.v1.Health/Check`. There are no spans for a sync, which is what replaces the book's Keptn lifecycle-operator trace. Measured on kind on 2026-10-01 after switching the tutorial's cluster to v3.5.3. On the same cluster, the PostSync hook and `argocd_app_sync_total` / `argocd_app_sync_duration_seconds_total` worked unchanged.
 
 ## Root cause
 

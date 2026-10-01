@@ -106,7 +106,7 @@ data:
                 "type": "prometheus",
                 "uid": "prometheus"
               },
-              "expr": "sum by (name) (argocd_app_sync_total{phase=~\"Failed|Error\",dry_run!=\"true\"}) or vector(0)",
+              "expr": "sum (argocd_app_sync_total{phase=~\"Failed|Error\",dry_run!=\"true\"}) or vector(0)",
               "legendFormat": "{{name}}"
             }
           ],
@@ -154,7 +154,7 @@ data:
         },
         {
           "id": 5,
-          "title": "Duration of each deployment",
+          "title": "Time spent deploying (each step is one deployment's duration)",
           "type": "timeseries",
           "datasource": {
             "type": "prometheus",
@@ -173,7 +173,7 @@ data:
                 "type": "prometheus",
                 "uid": "prometheus"
               },
-              "expr": "sum by (name) (increase(argocd_app_sync_duration_seconds_total[2m]))",
+              "expr": "sum by (name) (argocd_app_sync_duration_seconds_total)",
               "legendFormat": "{{name}}"
             }
           ],

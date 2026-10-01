@@ -30,7 +30,7 @@ In this tutorial we measure our deliveries, watch rollouts happen, and gate them
 | `helm install conference …` | Argo CD syncs the chart `oci://ghcr.io/allensanborn/conference-app` `v1.1.0` |
 | `kubectl edit deploy conference-notifications-service-deployment` to `v1.1.0` | Change the Application's chart version to `v1.2.0`. Argo CD syncs the new release |
 | Grafana → Dashboards → *Keptn Applications* (deployment count, time between deployments, per-version duration) | Grafana → Dashboards → *Deployment frequency (Argo CD)* (deployment count, average and per-deployment duration, failures) |
-| Jaeger: `lifecycle-operator` traces of the rollout | Jaeger: `argocd-controller` traces (`controller.SyncAppState`, `sync.Sync`, `sync.apply`, …) |
+| Jaeger: `lifecycle-operator` traces of the rollout | Jaeger: `argocd-controller` traces (`controller.Operation` → `controller.SyncAppState` → `sync.Sync` → `sync.apply`, …) |
 | `kubectl get jobs` / `kubectl logs` of `post-stdout-notification-*` | `kubectl get jobs` / `kubectl logs` of `post-sync-notification-*` |
 | Keptn Evaluations (mentioned, not demonstrated) | [`gates/`](gates/): an Argo Rollouts canary with a Prometheus memory check that promotes or aborts |
 
@@ -53,7 +53,7 @@ make install
 > [!Warning]
 > The Makefile installs Argo CD **`v3.6.0-rc1`, a release candidate**. It is the only way to get rollout traces today. Before 3.6, Argo CD's application controller sends no spans for a sync: they were added in [argoproj/argo-cd#28396](https://github.com/argoproj/argo-cd/pull/28396), after the 3.5 branch was cut, and v3.5.3 is the latest stable release as of September 2026.
 >
-> Only the **rollout traces** demo needs 3.6. The deployment-frequency dashboard, the post-deployment task and the release gate work the same on the stable release: `make install ARGOCD_VERSION=v3.5.3`. With 3.5, Jaeger shows only `argocd-server` and `argocd-repo-server` spans. Once 3.6.0 is released, use `make install ARGOCD_VERSION=v3.6.0` ([F063](../../docs/findings/F063-argocd-release-candidate-pin.md)).
+> Only the **rollout traces** demo needs 3.6. The deployment-frequency dashboard, the post-deployment task and the release gate work the same on the stable release: `make install ARGOCD_VERSION=v3.5.3`. With 3.5, Jaeger only shows the manifest-generation calls (`repository.RepoServerService/GenerateManifest`), not the sync itself. Once 3.6.0 is released, use `make install ARGOCD_VERSION=v3.6.0` ([F063](../../docs/findings/F063-argocd-release-candidate-pin.md)).
 
 ## Deploying the Conference application with Argo CD
 
@@ -95,8 +95,8 @@ kubectl get jobs
 ```
 
 ```shell
-NAME                                   STATUS     COMPLETIONS   DURATION   AGE
-post-sync-notification-...             Complete   1/1           4s         1m
+NAME                                         STATUS     COMPLETIONS   DURATION   AGE
+post-sync-notification-postsync-1790816410   Complete   1/1           3s         9s
 ```
 
 ```shell
@@ -104,11 +104,17 @@ kubectl logs job/<the job name from above>
 ```
 
 ```shell
-conference-agenda-service-deployment          version=v1.0.0   image=salaboy/agenda-service-...:v1.0.0
-conference-c4p-service-deployment             version=v1.0.0   image=salaboy/c4p-service-...:v1.0.0
-conference-frontend-deployment                version=v1.0.0   image=salaboy/frontend-go-...:v1.0.0
-conference-notifications-service-deployment   version=v1.0.0   image=salaboy/notifications-service-...:v1.0.0
-conference-redis                              version=         image=docker.io/valkey/valkey:...
+conference-agenda-service-deployment          version=v1.0.0  image=salaboy/agenda-service-0967b907d9920c99918e2b91b91937b3:v1.0.0
+conference-c4p-service-deployment             version=v1.0.0  image=salaboy/c4p-service-a3dc0474cbfa348afcdf47a8eee70ba9:v1.0.0
+conference-entity-operator                    version=        image=quay.io/strimzi/operator:1.2.0
+conference-frontend-deployment                version=v1.0.0  image=salaboy/frontend-go-1739aa83b5e69d4ccb8a5615830ae66c:v1.0.0
+conference-notifications-service-deployment   version=v1.0.0  image=salaboy/notifications-service-0e27884e01429ab7e350cb5dff61b525:v1.0.0
+conference-redis                              version=        image=docker.io/valkey/valkey:9.1.2
+```
+
+Chart `v1.1.0` still runs the book's `v1.0.0` images. Their frontend can exit on a transient Kafka error and restart a few times ([F006](../../docs/findings/F006-frontend-exits-on-kafka-read-error.md)). Version `v1.2.0`, which you deploy next, has the fix.
+
+```shell
 ```
 
 ## Dashboards and traces
@@ -119,13 +125,13 @@ In separate terminals:
 make port-forward-grafana
 ```
 
-Open [http://localhost:3000](http://localhost:3000) (`admin`/`admin`) and go to `Dashboards` → `Deployment frequency (Argo CD)`. You should see one deployment of `conference` and how long it took. That time runs from the start of the sync until the post-deployment task finished, so it includes waiting for Kafka and PostgreSQL.
+Open [http://localhost:3000](http://localhost:3000) (`admin`/`admin`) and go to `Dashboards` → `Deployment frequency (Argo CD)`. You should see one deployment of `conference` and how long it took. That time runs from the start of the sync until the post-deployment task finished, so it includes waiting for Kafka and PostgreSQL (a few minutes on a laptop). The counters are kept in memory by the Argo CD application controller, so they start from zero whenever it restarts.
 
 ```shell
 make port-forward-jaeger
 ```
 
-Open [http://localhost:16686](http://localhost:16686) (this needs Argo CD 3.6, see [Installation](#installation)), pick the `argocd-controller` service and find the `controller.SyncAppState` trace. Its spans show the steps of the sync: computing the tasks, applying resources, running the `PostSync` hook.
+Open [http://localhost:16686](http://localhost:16686) (this needs Argo CD 3.6, see [Installation](#installation)), pick the `argocd-controller` service and the `sync.apply` operation, and click *Find Traces*. Argo CD works on a sync in several passes, and each pass is one trace (root span `controller.Operation`). Searching for `sync.apply` shows only the passes that changed something in the cluster: a large trace (about 60 spans) where all of the application's resources are applied, and a small one where the `PostSync` Job is created. Open one to see the steps: comparing the desired and live state (`controller.CompareAppState`, with the manifests rendered by `argocd-repo-server`), planning (`sync.getSyncTasks`), and applying (`sync.runTasks`, `sync.apply`).
 
 ## Releasing a new version
 
@@ -139,8 +145,8 @@ kubectl patch application conference -n argocd --type json \
 Argo CD syncs the new release and runs the post-deployment task again. Once the application is `Synced` and `Healthy` again, check:
 
 - `kubectl get jobs`: a second `post-sync-notification-*` Job. Its log shows the new version (`v1.2.0`) and images.
-- Grafana: two deployments. The *Successful deployments over time* panel shows when each one happened (the time between deployments), and *Duration of each deployment* shows how long each took. The second deployment is usually much faster, because the infrastructure is already running.
-- Jaeger: a second `controller.SyncAppState` trace for the new sync.
+- Grafana: two deployments. The *Successful deployments over time* panel shows when each one happened (the time between deployments), and *Time spent deploying* grows by one step per deployment, the height of each step being how long it took. In our run the first deployment took 4m41s (it waits for Kafka and PostgreSQL) and the upgrade took 15s.
+- Jaeger: two more `sync.apply` traces for the new sync: the upgraded resources, then the new `PostSync` Job.
 
 ## Gating a release on a check
 
@@ -151,7 +157,7 @@ kubectl apply -f gates/
 kubectl argo rollouts get rollout notifications-service-canary
 ```
 
-Release a new version. The analysis runs three measurements, 20 seconds apart, and then the rollout is promoted:
+Release a new version. Half of the pods move to the new version, the analysis takes three measurements 20 seconds apart (the canary uses about 4 MiB), and then the rollout is promoted:
 
 ```shell
 kubectl argo rollouts set image notifications-service-canary \
@@ -161,8 +167,8 @@ kubectl argo rollouts get rollout notifications-service-canary --watch
 
 ```shell
 kubectl get analysisrun
-NAME                                          STATUS
-notifications-service-canary-...-2-1          Successful
+NAME                                          STATUS       AGE
+notifications-service-canary-7fffd8f97d-2-1   Successful   51s
 ```
 
 Now make the check impossible to pass (1 MiB) and release again. The analysis fails, the rollout is aborted, and the stable version keeps serving:
@@ -177,7 +183,7 @@ kubectl argo rollouts get rollout notifications-service-canary --watch
 
 ```shell
 Status:          ✖ Degraded
-Message:         RolloutAborted: Rollout aborted update to revision 3: Metric "memory" assessed Failed due to failed (1) > failureLimit (0)
+Message:         RolloutAborted: Rollout aborted update to revision 3: Step-based analysis phase error/failed: Metric "memory" assessed Failed due to failed (1) > failureLimit (0)
 ```
 
 ## Next steps

@@ -40,7 +40,18 @@ Argo CD is pinned to a release candidate for the trace demo only ([F063](F063-ar
 
 ## How to verify
 
-Follow `chapter-9/keptn/README.md` on a fresh kind cluster. Test evidence is in the commit that closes this finding.
+Follow `chapter-9/keptn/README.md` on a fresh kind cluster. Tested 2026-10-01 on kind (Kubernetes v1.35.0, one node). Argo CD was v3.6.0-rc1, then v3.5.3 for the non-trace demos.
+
+| Demonstration | Result |
+| --- | --- |
+| `make install` | PASS |
+| Argo CD syncs chart v1.1.0 + PostSync Job logs every Deployment's version and image | PASS (4m41s, including Kafka/PostgreSQL) |
+| Upgrade to chart v1.2.0, second PostSync Job shows `v1.2.0` | PASS (15s) |
+| Prometheus `argocd_app_sync_total` / `argocd_app_sync_duration_seconds_total`, every Grafana panel returns data | PASS |
+| Jaeger `argocd-controller` traces with `sync.apply` (about 64 spans for the apply, 17 for the hook) | PASS on v3.6.0-rc1; not available on v3.5.3 ([F062](F062-argocd-sync-traces-need-3-6.md)) |
+| Rollouts gate: canary promoted at about 4 MiB, aborted with a 1 MiB limit | PASS |
+
+The test pulled the fork's `ghcr.io/allensanborn/*` images, which are still private, with a `gh auth token` imagePullSecret on the `default` ServiceAccount. These images are used by chart v1.2.0 and the gate demo. A rerun without credentials is needed once the packages are public.
 
 ## Upstream relevance
 
