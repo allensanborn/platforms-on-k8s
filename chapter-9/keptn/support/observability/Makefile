@@ -6,13 +6,9 @@ GRAFANA_PORT_FORWARD ?= 3000
 .PHONY: install
 install: install-cert-manager
 	@echo "-----------------------------------"
-	@echo "Create Namespace and install Jaeger"
+	@echo "Install Jaeger (all-in-one)"
 	@echo "-----------------------------------"
-	kubectl create namespace observability --dry-run=client -o yaml | kubectl apply -f -
-	kubectl apply -f https://github.com/jaegertracing/jaeger-operator/releases/download/$(JAEGER_VERSION)/jaeger-operator.yaml -n observability
-	# gcr.io/kubebuilder/kube-rbac-proxy was removed from gcr.io; use the upstream image instead
-	kubectl set image deployment/jaeger-operator -n observability kube-rbac-proxy=quay.io/brancz/kube-rbac-proxy:v0.13.0
-	kubectl wait --for=condition=available deployment/jaeger-operator -n observability --timeout=300s
+	kubectl create namespace "$(TOOLKIT_NAMESPACE)" --dry-run=client -o yaml | kubectl apply -f -
 	kubectl apply -f config/jaeger.yaml -n "$(TOOLKIT_NAMESPACE)"
 
 	@echo ""

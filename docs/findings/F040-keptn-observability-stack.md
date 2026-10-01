@@ -2,7 +2,7 @@
 
 - **Chapter:** 9 (keptn)
 - **Severity:** medium
-- **Status:** open (two of three blockers fixed)
+- **Status:** open (observability stack fixed; the `klt` 0.2.6 operators don't become ready)
 - **Fix commit:** 47641bd
 - **Found:** 2026-09-30, branch `crossplane-v2-and-bitnami-replacements`
 
@@ -18,7 +18,8 @@
 
 1. A 60s timeout is too short on a fresh cluster.
 2. Kubebuilder's `gcr.io/kubebuilder/kube-rbac-proxy` images were removed from gcr.io. `jaeger-operator` v1.45.0 (2023) still references them.
-3. Not diagnosed. `jaeger-operator` v1.45.0 on Kubernetes 1.35 with an `olm.targetNamespaces`-based `WATCH_NAMESPACE` is the suspect. Jaeger v1 and its operator have since been superseded by Jaeger v2 on the OpenTelemetry Collector (not verified here).
+3. Not diagnosed. `jaeger-operator` v1.45.0 on Kubernetes 1.35 with an `olm.targetNamespaces`-based `WATCH_NAMESPACE` is the suspect.
+4. (Second run, after replacing Jaeger) `helm upgrade --install keptn klt/klt --wait` → `context deadline exceeded`. `certificate-operator` stayed 0/1 with 7 restarts, while `lifecycle-operator` and `metrics-operator` crash-looped logging `waiting for certificate secret to be available.` Not diagnosed. The host was heavily loaded by another, unrelated kind cluster (about 480% CPU), and probes everywhere were timing out, so this is not conclusive.
 
 ## Evidence
 
@@ -30,8 +31,9 @@ Cluster `pek-ch9`, 2026-09-30. Logs of the four `make install` attempts were kep
 - The cert-manager wait is now `kubectl wait --for=condition=Available deployment --all -n cert-manager --timeout=300s`.
 - After applying the Jaeger operator, `kubectl set image deployment/jaeger-operator -n observability kube-rbac-proxy=quay.io/brancz/kube-rbac-proxy:v0.13.0`. The operator then became Available.
 
+- The Jaeger operator and Jaeger CR are replaced by a Jaeger all-in-one `Deployment` (`jaegertracing/all-in-one:1.74.0`) with the same `jaeger-collector`/`jaeger-query` Services (`config/jaeger.yaml`). After that, Jaeger, the OTel collector and the Prometheus/Grafana stack all came up and `make install-observability` succeeded.
+
 Open:
-- The Jaeger CR still isn't reconciled.
 - The `klt` chart itself ([F038](F038-keptn-klt-chart-renamed.md)) and the rest of the chapter were not reached.
 
 A real fix probably replaces the Jaeger operator with a plain Jaeger all-in-one Deployment (or Jaeger v2), and moves from `klt` 0.2.6 to the `keptn` chart.
