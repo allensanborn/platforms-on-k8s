@@ -4,7 +4,8 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  generateName: post-sync-notification-
+  # Argo CD names hook Jobs <generateName>-postsync-<timestamp>
+  generateName: post-sync-notification
   annotations:
     argocd.argoproj.io/hook: PostSync
 spec:

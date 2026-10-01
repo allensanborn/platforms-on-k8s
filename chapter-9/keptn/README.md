@@ -83,7 +83,7 @@ The task is a plain Kubernetes Job with one annotation:
 
 ```yaml
 metadata:
-  generateName: post-sync-notification-
+  generateName: post-sync-notification
   annotations:
     argocd.argoproj.io/hook: PostSync
 ```
