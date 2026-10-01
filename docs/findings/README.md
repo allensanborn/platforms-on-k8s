@@ -13,7 +13,7 @@ Discrepancies with the two source documents each have their own finding:
 | [F003](F003-stale-vendored-subcharts.md) | Vendored subchart tarballs didn't match Chart.yaml | 2 | low | fixed | 27da304 |
 | [F004](F004-ingress-nginx-kind-nodeselector.md) | ingress-nginx's kind manifest no longer pins the controller to the `ingress-ready` node | 2 (and every chapter reusing its cluster) | medium | fixed | 27da304 |
 | [F005](F005-services-crashloop-until-infra-ready.md) | Services crash-loop until Kafka/PostgreSQL/Redis are reachable | 2, 5, 6 | medium | fixed | 45216f3 |
-| [F006](F006-frontend-exits-on-kafka-read-error.md) | Frontend exits on any Kafka read error, including a transient `Not Coordinator For Group` | 2, 5, 6 | medium | fixed in code; image not published | 3256cfc |
+| [F006](F006-frontend-exits-on-kafka-read-error.md) | Frontend exits on any Kafka read error, including a transient `Not Coordinator For Group` | 2, 5, 6 | medium | fixed | 3256cfc (image v1.2.0) |
 | [F007](F007-kafka-bootstrap-timeout-on-kind.md) | Kafka bootstrap Service timed out for minutes after Kafka was `Ready` (kindnet NetworkPolicy suspected) | 2, 4 | medium | documented (workaround; cause not proven) | — |
 | [F008](F008-strimzi-startup-time-on-kind.md) | Strimzi Kafka takes 1.5-5 minutes to become Ready on kind | 2, 5, 6 | info | documented | 27da304 |
 | [F009](F009-c4p-needs-postgres-superuser.md) | c4p-service needs user and database `postgres`, so it uses CloudNativePG's superuser Secret | 2, 5, 6 | medium | fixed | 27da304 |
@@ -28,7 +28,7 @@ Discrepancies with the two source documents each have their own finding:
 | [F018](F018-operators-inside-vcluster.md) | The operator-based chart needs CNPG and Strimzi inside each vcluster | 6 | medium | fixed | b2ee1fc |
 | [F019](F019-frontend-debug-value-key.md) | The Conference chart's frontend debug value is `services.frontend.debug` | 6 | low | documented | b2ee1fc |
 | [F020](F020-infra-false-needs-values.md) | `install.infrastructure=false` without per-service values fails to render | 6 | low | open | — |
-| [F021](F021-admin-ui-v1-environment.md) | Admin UI still writes the Crossplane v1 `Environment` shape | 6 | medium | open | — |
+| [F021](F021-admin-ui-v1-environment.md) | Admin UI still writes the Crossplane v1 `Environment` shape | 6 | medium | fixed | f03c06d |
 | [F022](F022-aws-compositions.md) | AWS compositions used an archived provider and an incomplete MSK spec | 5 (aws) | medium | fixed (untested against AWS) | 12e796d |
 | [F023](F023-crossplane-cli-validate-renamed.md) | `crossplane beta validate` is now `crossplane resource validate`; CLI moved to cli.crossplane.io | 5 | info | documented | — |
 | [F024](F024-docker-compose-bitnami.md) | docker-compose files and Dagger pipelines used Bitnami images and env | dev loop | medium | fixed | d84fe7d |
