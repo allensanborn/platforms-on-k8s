@@ -41,7 +41,7 @@ spec:
           value: {{ .Release.Name }}-kafka-bootstrap.{{ .Release.Namespace }}.svc.cluster.local
 {{- else }}
         - name: KAFKA_URL
-          value: {{ .Values.frontend.kafka.url}}
+          value: {{ required "frontend.kafka.url is required when install.infrastructure=false" .Values.frontend.kafka.url }}
 {{- end }}                         
         - name: POD_NODENAME
           valueFrom:

@@ -25,6 +25,26 @@ redis:
   dataStorage:
     enabled: true
     requestedSize: 1Gi
+# Used only when install.infrastructure=false: where the services find
+# infrastructure provisioned elsewhere (see chapter-5/app-values.yaml).
+agenda:
+  kafka:
+    url: ""
+  redis:
+    host: ""
+    secretName: ""   # optional; omit for a Redis without auth
+c4p:
+  kafka:
+    url: ""
+  postgresql:
+    host: ""
+    secretName: ""
+frontend:
+  kafka:
+    url: ""
+notifications:
+  kafka:
+    url: ""
 # PostgreSQL (CloudNativePG Cluster) and Kafka (Strimzi) are rendered by
 # templates/infrastructure.yaml; their operators must be installed first.
 postgresql:

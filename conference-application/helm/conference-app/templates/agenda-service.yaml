@@ -38,9 +38,9 @@ spec:
               key: redis-password
 {{- else }}
         - name: KAFKA_URL
-          value: {{ .Values.agenda.kafka.url}}
+          value: {{ required "agenda.kafka.url is required when install.infrastructure=false" .Values.agenda.kafka.url }}
         - name: REDIS_HOST
-          value: {{ .Values.agenda.redis.host}}
+          value: {{ required "agenda.redis.host is required when install.infrastructure=false" .Values.agenda.redis.host }}
 {{- if .Values.agenda.redis.secretName }}
         - name: REDIS_PASSWORD
           valueFrom:

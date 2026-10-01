@@ -42,13 +42,13 @@ spec:
               key: password
 {{- else }}
         - name: KAFKA_URL
-          value: {{ .Values.c4p.kafka.url}}
+          value: {{ required "c4p.kafka.url is required when install.infrastructure=false" .Values.c4p.kafka.url }}
         - name: POSTGRES_HOST
-          value: {{ .Values.c4p.postgresql.host}}
+          value: {{ required "c4p.postgresql.host is required when install.infrastructure=false" .Values.c4p.postgresql.host }}
         - name: POSTGRES_PASSWORD
           valueFrom:
             secretKeyRef:
-              name: {{ .Values.c4p.postgresql.secretName}}
+              name: {{ required "c4p.postgresql.secretName is required when install.infrastructure=false" .Values.c4p.postgresql.secretName }}
               key: {{ .Values.c4p.postgresql.secretKey | default "password" }}
 {{- end }}                
         - name: POD_NODENAME
