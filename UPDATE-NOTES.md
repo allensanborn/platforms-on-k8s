@@ -40,8 +40,8 @@ Why: Bitnami stopped publishing versioned images to `docker.io/bitnami` in Augus
 - 18:40 everything repointed at `ghcr.io/allensanborn`: chart `conference-app` v1.2.0, `conference-admin` v1.2.0, Dapr chart v2.1.0, chapters 2, 4, 5, 6, 8, 9, compose and pipelines. `chapter-6/charts/` removed ([F042](docs/findings/F042-chapter6-packaged-chart-removed.md)). Upstream `v3.0.0` investigated ([F043](docs/findings/F043-upstream-v3-chart.md)).
 - 18:50 admin API create/list/delete on Crossplane v2 PASS (temporary pull secret; images still private).
 - 19:04 chart v1.2.0: clear error for `install.infrastructure=false` without values ([F020](docs/findings/F020-infra-false-needs-values.md)).
-- 19:50 index annotation verified on a local registry; publish script fixed ([F049](docs/findings/F049-ghcr-package-repo-link.md)). Keptn labels removed from both charts ([F050](docs/findings/F050-keptn-labels-removed.md)).
-- 20:05 packaged charts tested with a pull secret, then pushed: conference-app v1.2.0 and v2.1.0, and conference-admin v1.2.0.
+- 19:30 index annotation verified on a local registry; publish script fixed ([F049](docs/findings/F049-ghcr-package-repo-link.md)). Keptn labels removed from both charts ([F050](docs/findings/F050-keptn-labels-removed.md)).
+- 19:38 packaged charts tested with a pull secret, then pushed: conference-app v1.2.0 and v2.1.0, and conference-admin v1.2.0.
 - Waiting: the 12 private packages need flipping to public before the no-credentials tests.
 
 ## Chapter 2: conference-app Helm chart
