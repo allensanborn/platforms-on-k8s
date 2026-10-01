@@ -2,7 +2,7 @@
 
 - **Chapter:** 9 (keptn)
 - **Severity:** medium
-- **Status:** open (observability stack fixed; the `klt` 0.2.6 operators don't become ready)
+- **Status:** superseded by F060 (keptn-current). Keptn is archived by the CNCF (cncf/toc#1584) and chapter 9.3 is replaced on branch `keptn-current`
 - **Fix commit:** 47641bd
 - **Found:** 2026-09-30, branch `crossplane-v2-and-bitnami-replacements`
 
