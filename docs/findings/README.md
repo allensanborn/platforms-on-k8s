@@ -29,7 +29,7 @@ Discrepancies with the two source documents each have their own finding:
 | [F019](F019-frontend-debug-value-key.md) | The Conference chart's frontend debug value is `services.frontend.debug` | 6 | low | documented | b2ee1fc |
 | [F020](F020-infra-false-needs-values.md) | `install.infrastructure=false` without per-service values fails to render | 6 | low | fixed (clear error) | 0d8ef14 |
 | [F021](F021-admin-ui-v1-environment.md) | Admin UI still writes the Crossplane v1 `Environment` shape | 6 | medium | fixed | f03c06d |
-| [F022](F022-aws-compositions.md) | AWS compositions used an archived provider and an incomplete MSK spec | 5 (aws) | medium | fixed (untested against AWS) | 12e796d |
+| [F022](F022-aws-compositions.md) | AWS compositions used an archived provider and an incomplete MSK spec | 5 (aws) | medium | fixed (run against Floci 2.1.0, see F080-F083; not against a real AWS account) | 12e796d, dfa2ca7 |
 | [F023](F023-crossplane-cli-validate-renamed.md) | `crossplane beta validate` is now `crossplane resource validate`; CLI moved to cli.crossplane.io | 5 | info | documented | — |
 | [F024](F024-docker-compose-bitnami.md) | docker-compose files and Dagger pipelines used Bitnami images and env | dev loop | medium | fixed | d84fe7d |
 | [F025](F025-frontend-go-mod-stale.md) | frontend-go's go.mod needs `go mod tidy` before it builds | dev loop | low | fixed | 3256cfc |
@@ -62,3 +62,8 @@ Discrepancies with the two source documents each have their own finding:
 | [F061](F061-chart-dead-keptn-label.md) | The Conference chart still puts a dead `keptn.sh/post-deployment-tasks` label on every service | 2-9 | low | fixed by [F050](F050-keptn-labels-removed.md) | fcc3ae4 |
 | [F062](F062-argocd-sync-traces-need-3-6.md) | Argo CD only exports sync traces from 3.6; the tutorial pins v3.6.0-rc1 | 9 | medium | documented | branch `keptn-current` |
 | [F063](F063-argocd-release-candidate-pin.md) | The Keptn-replacement tutorial pins an Argo CD release candidate (v3.6.0-rc1) | 9 | low | open | — |
+| [F080](F080-aws-redis-cluster-to-replicationgroup.md) | AWS Redis Composition used an ElastiCache `Cluster`, which Floci rejects and whose address the provider never publishes | 5 (aws) | high | fixed (Floci) | dfa2ca7 |
+| [F081](F081-aws-msk-network-and-ec2-provider.md) | The MSK Composition's subnet and security-group selectors had nothing to select | 5 (aws) | high | fixed (Floci) | dfa2ca7 |
+| [F082](F082-aws-topic-and-table-never-created.md) | On the AWS path nothing created `events-topic` or the `proposals` table | 5 (aws) | high | fixed (Floci) | dfa2ca7 |
+| [F083](F083-aws-tutorial-verified-on-floci.md) | The chapter-5 AWS tutorial runs end to end against Floci 2.1.0, with a Floci-only ProviderConfig overlay | 5 (aws) | info | documented | dfa2ca7 |
+| [F084](F084-aws-endpoints-unreachable-from-kind.md) | With a real AWS account, a local kind cluster can't reach the RDS, ElastiCache or MSK endpoints | 5 (aws) | medium | documented | dfa2ca7 |

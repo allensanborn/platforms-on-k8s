@@ -19,3 +19,11 @@ metadata:
   name: provider-aws-kafka
 spec:
   package: xpkg.crossplane.io/crossplane-contrib/provider-aws-kafka:v2.8.1
+---
+# The MSK Composition selects client subnets and a security group, which are ec2 managed resources.
+apiVersion: pkg.crossplane.io/v1
+kind: Provider
+metadata:
+  name: provider-aws-ec2
+spec:
+  package: xpkg.crossplane.io/crossplane-contrib/provider-aws-ec2:v2.8.1

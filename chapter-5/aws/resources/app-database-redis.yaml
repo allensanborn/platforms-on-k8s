@@ -1,5 +1,5 @@
 # Crossplane v2 + provider-upjet-aws namespaced managed resources (*.aws.m.upbound.io).
-# UNTESTED against AWS: converted syntactically and schema-checked with `crossplane beta validate`.
+# Run end to end against Floci 2.1.0 (see ../floci/); not run against a real AWS account.
 apiVersion: apiextensions.crossplane.io/v1
 kind: Composition
 metadata:
@@ -23,14 +23,18 @@ spec:
       resources:
       - name: redis
         base:
+          # A ReplicationGroup, not a Cluster: the provider only publishes a Cluster's address
+          # to the connection Secret for memcached, and Floci only runs memcached Clusters.
+          # The Secret gets primary_endpoint_address and port.
           apiVersion: elasticache.aws.m.upbound.io/v1beta1
-          kind: Cluster
+          kind: ReplicationGroup
           spec:
             forProvider:
               region: us-west-2
+              description: Conference app key-value store
               engine: redis
               nodeType: cache.t3.micro
-              numCacheNodes: 1
+              numCacheClusters: 1
             providerConfigRef:
               kind: ClusterProviderConfig
               name: default

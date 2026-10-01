@@ -1,5 +1,5 @@
 # Crossplane v2 + provider-upjet-aws namespaced managed resources (*.aws.m.upbound.io).
-# UNTESTED against AWS: converted syntactically and schema-checked with `crossplane beta validate`.
+# Run end to end against Floci 2.1.0 (see ../floci/); not run against a real AWS account.
 apiVersion: apiextensions.crossplane.io/v1
 kind: Composition
 metadata:

@@ -13,6 +13,7 @@ Why: Bitnami stopped publishing versioned images to `docker.io/bitnami` in Augus
 - 16:00 chapter 5 local compositions: PASS on fresh kind cluster `pek-ch5` (Crossplane v2.4.2; XRs Ready; app installed with `install.infrastructure=false`; same end-to-end flow).
 - 16:30 chapter 6 Environment: PASS on `pek-ch5` (vcluster 0.37.2 created in `team-a`, operators + app installed inside it through the exported kubeconfig, same end-to-end flow through a port-forward into the vcluster; create/delete cycle run twice).
 - 16:34 chapter 5 AWS compositions: converted, render + schema validation only (UNTESTED against AWS).
+- 2026-09-30 (branch `aws-floci`) chapter 5 AWS compositions: PASS against Floci 2.1.0 on kind `pek-floci` (XRs Ready, init Jobs Complete, chart v1.1.0 e2e PASS with 0 restarts, run twice, the second time with the README commands as written; delete removed every MR and Floci's containers). Not run against a real AWS account.
 - 16:37 docker-compose files and Dagger pipelines: images replaced; two compose stacks brought up locally.
 - 16:40 all `pek-` clusters deleted.
 - 16:44 chart v1.1.0 with `wait-for-dependencies` init containers ([F005](docs/findings/F005-services-crashloop-until-infra-ready.md)) installed from the packaged `.tgz` on fresh cluster `pek-m1`: 0 restarts, e2e PASS.
@@ -100,9 +101,11 @@ Why the superuser Secret and not CloudNativePG's `-app` Secret: `c4p-service.go`
 | Kafka pod | `my-mb-kafka-0` | `my-mb-kafka-my-mb-kafka-dual-role-0` |
 | init SQL | `kubectl apply -f resources/config` (default ns) | `kubectl apply -n team-a -f resources/config` before requesting the SQL Database (CNPG `postInitSQLRefs` reads it) |
 
-## Chapter 5: AWS compositions (UNTESTED)
+## Chapter 5: AWS compositions (run against Floci, not AWS)
 
 Converted to `mode: Pipeline` and provider-upjet-aws v2.8.1 namespaced MRs: `elasticache.aws.m.upbound.io/v1beta1 Cluster`, `rds.aws.m.upbound.io/v1beta1 Instance` (`username: postgres`, `autoGeneratePassword` into `<xr>-postgres-password`), `kafka.aws.m.upbound.io/v1beta1 Cluster` (MSK; client subnets and security groups selected by label `platform.salaboy.com/msk: "true"`, which the original omitted and MSK requires). New `chapter-5/aws/providers.yaml` installs the three family providers; the README uses an `aws.m.upbound.io/v1beta1 ClusterProviderConfig`. Checked with `crossplane render` (function run in Docker) piped to `crossplane resource validate` against the v2.8.1 CRDs: all three MRs validate. (Crossplane CLI v2.5.0 renamed `crossplane beta validate` to `crossplane resource validate`; the XR in `render`'s output fails validation only because `render` drops `spec.parameters` from the echoed XR, and the input XRs validate.) Never applied to AWS; Secret keys unverified. The repo has no GCP compositions.
+
+Follow-up on branch `aws-floci`: the whole AWS tutorial, including the Conference app e2e flow, ran against [Floci](https://github.com/floci-io/floci) 2.1.0 on kind. Changes: the Redis Composition composes an ElastiCache `ReplicationGroup` instead of a `Cluster` ([F080](docs/findings/F080-aws-redis-cluster-to-replicationgroup.md)); `providers.yaml` adds provider-aws-ec2 and new `network.yaml` creates the labelled VPC/Subnets/SG MSK selects ([F081](docs/findings/F081-aws-msk-network-and-ec2-provider.md)); new `init-jobs.yaml` creates `events-topic` and the `proposals` table ([F082](docs/findings/F082-aws-topic-and-table-never-created.md)); `app-values.yaml` has placeholders that the README fills from the MR status and Secrets; Floci-only `floci/providerconfig.yaml` plus a README section ([F083](docs/findings/F083-aws-tutorial-verified-on-floci.md), which also lists Floci's differences from AWS); README warning about reaching VPC endpoints from kind ([F084](docs/findings/F084-aws-endpoints-unreachable-from-kind.md)). Connection Secret keys now verified on Floci: RDS `address`, `host`, `port`, `username`, `endpoint`, `password`; ElastiCache `configuration_endpoint_address` (AWS: `primary_endpoint_address`) and `port`; MSK none.
 
 ## Chapter 6: Environment on Crossplane v2 + vcluster 0.37.2
 
