@@ -14,7 +14,6 @@ spec:
         app.kubernetes.io/name: c4p-service
         app.kubernetes.io/part-of: c4p-service
         app.kubernetes.io/version: {{ .Values.services.tag  }}
-        keptn.sh/post-deployment-tasks: stdout-notification
     spec:
 {{- if .Values.install.infrastructure }}
 {{ include "conference-app.waitFor" (list (printf "%s-kafka-bootstrap.%s.svc.cluster.local:9092" $.Release.Name $.Release.Namespace) (printf "%s-postgresql-rw.%s.svc.cluster.local:5432" $.Release.Name $.Release.Namespace)) | indent 6 }}

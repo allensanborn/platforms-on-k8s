@@ -6,6 +6,8 @@
 #
 # Needs: ko, helm, docker (for the existence check), gh (logged in with write:packages).
 # Never overwrites: any image or chart tag that already exists is skipped.
+# GHCR links a package to the repo from the source annotation on the multi-arch index
+# (--image-annotation); the label alone (--image-label) only reaches the per-platform configs.
 # New GHCR packages are PRIVATE; make each one public in its package settings
 # (github.com/users/<owner>/packages/container/package/<name>), there is no API for it.
 set -euo pipefail
@@ -35,7 +37,8 @@ ko_publish() {
   if exists "$REPO/$name:$tag"; then echo "skip $REPO/$name:$tag (exists)"; return; fi
   (cd "$ROOT/$dir" && GOFLAGS="-mod=mod -ldflags=-X=main.buildVersion=${tag#v}" KO_DOCKER_REPO=$REPO \
     ko build --platform=linux/amd64,linux/arm64 --tags="$tag" \
-      --image-label "org.opencontainers.image.source=$SOURCE" "./$target" | tail -1)
+      --image-label "org.opencontainers.image.source=$SOURCE" \
+      --image-annotation "org.opencontainers.image.source=$SOURCE" "./$target" | tail -1)
 }
 
 # dora_publish <file basename> <tag>
@@ -47,7 +50,8 @@ dora_publish() {
   cp "$ROOT/chapter-9/dora-cloudevents/$f.go" "$build/dora-$f/main.go"
   (cd "$build/dora-$f" && GOFLAGS=-mod=mod KO_DOCKER_REPO=$REPO \
     ko build --base-import-paths --platform=linux/amd64,linux/arm64 --tags="$tag" \
-      --image-label "org.opencontainers.image.source=$SOURCE" . | tail -1)
+      --image-label "org.opencontainers.image.source=$SOURCE" \
+      --image-annotation "org.opencontainers.image.source=$SOURCE" . | tail -1)
 }
 
 # chart_publish <chart dir>   (set SKIP_CHARTS=1 to publish images only)

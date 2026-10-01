@@ -392,7 +392,6 @@ spec:
         app.kubernetes.io/name: agenda-service
         app.kubernetes.io/part-of: agenda-service
         app.kubernetes.io/version: v1.2.0
-        keptn.sh/post-deployment-tasks: stdout-notification
     spec:
       initContainers:
       - name: wait-for-dependencies
@@ -468,7 +467,6 @@ spec:
         app.kubernetes.io/name: c4p-service
         app.kubernetes.io/part-of: c4p-service
         app.kubernetes.io/version: v1.2.0
-        keptn.sh/post-deployment-tasks: stdout-notification
     spec:
       initContainers:
       - name: wait-for-dependencies
@@ -548,7 +546,6 @@ spec:
         app.kubernetes.io/name: frontend
         app.kubernetes.io/part-of: frontend
         app.kubernetes.io/version: v1.2.0
-        keptn.sh/post-deployment-tasks: stdout-notification
     spec:
       initContainers:
       - name: wait-for-dependencies
@@ -623,7 +620,6 @@ spec:
         app.kubernetes.io/name: notifications-service
         app.kubernetes.io/part-of: notifications-service
         app.kubernetes.io/version: v1.2.0
-        keptn.sh/post-deployment-tasks: stdout-notification
     spec:
       initContainers:
       - name: wait-for-dependencies
