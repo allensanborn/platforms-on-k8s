@@ -3,7 +3,7 @@
 - **Chapter:** 6
 - **Severity:** low
 - **Status:** fixed (clear error); chapter 6 `installInfra: false` still has no hosts to use
-- **Fix commit:** PENDING (chart v1.2.0)
+- **Fix commit:** 0d8ef14 (chart v1.2.0)
 - **Found:** 2026-09-30, branch `crossplane-v2-and-bitnami-replacements`
 
 ## Symptom

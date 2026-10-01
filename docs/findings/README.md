@@ -27,7 +27,7 @@ Discrepancies with the two source documents each have their own finding:
 | [F017](F017-provider-helm-failed-release-no-retry.md) | A provider-helm Release whose first install fails stays `failed` | 6 | medium | fixed | b2ee1fc, 07d8fa2 |
 | [F018](F018-operators-inside-vcluster.md) | The operator-based chart needs CNPG and Strimzi inside each vcluster | 6 | medium | fixed | b2ee1fc |
 | [F019](F019-frontend-debug-value-key.md) | The Conference chart's frontend debug value is `services.frontend.debug` | 6 | low | documented | b2ee1fc |
-| [F020](F020-infra-false-needs-values.md) | `install.infrastructure=false` without per-service values fails to render | 6 | low | open | — |
+| [F020](F020-infra-false-needs-values.md) | `install.infrastructure=false` without per-service values fails to render | 6 | low | fixed (clear error) | 0d8ef14 |
 | [F021](F021-admin-ui-v1-environment.md) | Admin UI still writes the Crossplane v1 `Environment` shape | 6 | medium | fixed | f03c06d |
 | [F022](F022-aws-compositions.md) | AWS compositions used an archived provider and an incomplete MSK spec | 5 (aws) | medium | fixed (untested against AWS) | 12e796d |
 | [F023](F023-crossplane-cli-validate-renamed.md) | `crossplane beta validate` is now `crossplane resource validate`; CLI moved to cli.crossplane.io | 5 | info | documented | — |
