@@ -3,7 +3,7 @@
 - **Chapter:** 5 (aws)
 - **Severity:** medium
 - **Status:** fixed (run end to end against Floci 2.1.0, see F080-F083; not against a real AWS account)
-- **Fix commit:** 12e796d
+- **Fix commit:** 12e796d, dfa2ca7
 - **Found:** 2026-09-30, branch `crossplane-v2-and-bitnami-replacements`
 
 ## Symptom

@@ -3,7 +3,7 @@
 - **Chapter:** 5 (aws)
 - **Severity:** high
 - **Status:** fixed (tested against Floci 2.1.0, not a real AWS account)
-- **Fix commit:** see README row
+- **Fix commit:** dfa2ca7
 - **Found:** 2026-09-30, branch `aws-floci`
 
 ## Symptom

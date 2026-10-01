@@ -27,7 +27,7 @@ Sources the findings were checked against: the llm-wiki page *Platform Engineeri
 | [F019](F019-frontend-debug-value-key.md) | The Conference chart's frontend debug value is `services.frontend.debug` | 6 | low | documented | b2ee1fc |
 | [F020](F020-infra-false-needs-values.md) | `install.infrastructure=false` without per-service values fails to render | 6 | low | open | — |
 | [F021](F021-admin-ui-v1-environment.md) | Admin UI still writes the Crossplane v1 `Environment` shape | 6 | medium | open | — |
-| [F022](F022-aws-compositions.md) | AWS compositions used an archived provider and an incomplete MSK spec | 5 (aws) | medium | fixed (run against Floci 2.1.0, see F080-F083; not against a real AWS account) | 12e796d |
+| [F022](F022-aws-compositions.md) | AWS compositions used an archived provider and an incomplete MSK spec | 5 (aws) | medium | fixed (run against Floci 2.1.0, see F080-F083; not against a real AWS account) | 12e796d, dfa2ca7 |
 | [F023](F023-crossplane-cli-validate-renamed.md) | `crossplane beta validate` is now `crossplane resource validate`; CLI moved to cli.crossplane.io | 5 | info | documented | — |
 | [F024](F024-docker-compose-bitnami.md) | docker-compose files and Dagger pipelines used Bitnami images and env | dev loop | medium | fixed | d84fe7d |
 | [F025](F025-frontend-go-mod-stale.md) | frontend-go's go.mod needs `go mod tidy` before it builds | dev loop | low | fixed | 3256cfc |
@@ -47,8 +47,8 @@ Sources the findings were checked against: the llm-wiki page *Platform Engineeri
 | [F039](F039-chapter7-v2-chart-bitnami.md) | Chapter 7's Dapr chart (v2.0.0) has the same Bitnami dependencies | 7 | high | fixed on branch `v2.0.0-bitnami-replacements` | a62e4bd (other branch) |
 | [F040](F040-keptn-observability-stack.md) | The Keptn chapter's observability install no longer completes | 9 | medium | open (two of three blockers fixed) | 47641bd |
 | [F041](F041-translated-readmes-stale.md) | Translated READMEs still carry the old commands | 2-9 | low | open | — |
-| [F080](F080-aws-redis-cluster-to-replicationgroup.md) | AWS Redis Composition used an ElastiCache `Cluster`, which Floci rejects and whose address the provider never publishes | 5 (aws) | high | fixed (Floci) | COMMIT |
-| [F081](F081-aws-msk-network-and-ec2-provider.md) | The MSK Composition's subnet and security-group selectors had nothing to select | 5 (aws) | high | fixed (Floci) | COMMIT |
-| [F082](F082-aws-topic-and-table-never-created.md) | On the AWS path nothing created `events-topic` or the `proposals` table | 5 (aws) | high | fixed (Floci) | COMMIT |
-| [F083](F083-aws-tutorial-verified-on-floci.md) | The chapter-5 AWS tutorial runs end to end against Floci 2.1.0, with a Floci-only ProviderConfig overlay | 5 (aws) | info | documented | COMMIT |
-| [F084](F084-aws-endpoints-unreachable-from-kind.md) | With a real AWS account, a local kind cluster can't reach the RDS, ElastiCache or MSK endpoints | 5 (aws) | medium | documented | COMMIT |
+| [F080](F080-aws-redis-cluster-to-replicationgroup.md) | AWS Redis Composition used an ElastiCache `Cluster`, which Floci rejects and whose address the provider never publishes | 5 (aws) | high | fixed (Floci) | dfa2ca7 |
+| [F081](F081-aws-msk-network-and-ec2-provider.md) | The MSK Composition's subnet and security-group selectors had nothing to select | 5 (aws) | high | fixed (Floci) | dfa2ca7 |
+| [F082](F082-aws-topic-and-table-never-created.md) | On the AWS path nothing created `events-topic` or the `proposals` table | 5 (aws) | high | fixed (Floci) | dfa2ca7 |
+| [F083](F083-aws-tutorial-verified-on-floci.md) | The chapter-5 AWS tutorial runs end to end against Floci 2.1.0, with a Floci-only ProviderConfig overlay | 5 (aws) | info | documented | dfa2ca7 |
+| [F084](F084-aws-endpoints-unreachable-from-kind.md) | With a real AWS account, a local kind cluster can't reach the RDS, ElastiCache or MSK endpoints | 5 (aws) | medium | documented | dfa2ca7 |

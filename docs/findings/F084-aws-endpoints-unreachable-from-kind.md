@@ -3,7 +3,7 @@
 - **Chapter:** 5 (aws)
 - **Severity:** medium
 - **Status:** documented
-- **Fix commit:** see README row
+- **Fix commit:** dfa2ca7
 - **Found:** 2026-09-30, branch `aws-floci`
 
 ## Symptom
