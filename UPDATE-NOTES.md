@@ -40,7 +40,9 @@ Why: Bitnami stopped publishing versioned images to `docker.io/bitnami` in Augus
 - 18:40 everything repointed at `ghcr.io/allensanborn`: chart `conference-app` v1.2.0, `conference-admin` v1.2.0, Dapr chart v2.1.0, chapters 2, 4, 5, 6, 8, 9, compose and pipelines. `chapter-6/charts/` removed ([F042](docs/findings/F042-chapter6-packaged-chart-removed.md)). Upstream `v3.0.0` investigated ([F043](docs/findings/F043-upstream-v3-chart.md)).
 - 18:50 admin API create/list/delete on Crossplane v2 PASS (temporary pull secret; images still private).
 - 19:04 chart v1.2.0: clear error for `install.infrastructure=false` without values ([F020](docs/findings/F020-infra-false-needs-values.md)).
-- Waiting: the new GHCR packages are private until the owner flips them; charts v1.2.0/v2.1.0 are pushed only after a test with no credentials.
+- 19:50 index annotation verified on a local registry; publish script fixed ([F049](docs/findings/F049-ghcr-package-repo-link.md)). Keptn labels removed from both charts ([F050](docs/findings/F050-keptn-labels-removed.md)).
+- 20:05 packaged charts tested with a pull secret, then pushed: conference-app v1.2.0 and v2.1.0, and conference-admin v1.2.0.
+- Waiting: the 12 private packages need flipping to public before the no-credentials tests.
 
 ## Chapter 2: conference-app Helm chart
 
@@ -172,3 +174,8 @@ Charts:
 | Chart | Version | Digest | Status |
 | --- | --- | --- | --- |
 | `oci://ghcr.io/allensanborn/conference-app` | `v1.1.0` | `sha256:a7e7b8e3e07fd9459bc56cc711887945ff2a2ac0d70acf0b2ccdcc39100b4246` | public; Valkey/CNPG/Strimzi, still `salaboy/*:v1.0.0` images |
+| `oci://ghcr.io/allensanborn/conference-app` | `v1.2.0` | `sha256:5ca6ccdae678086f78a7f1654528d3cf484451095ba4c55e17ea4d230af7e0fc` | public package; `ghcr.io/allensanborn/*:v1.2.0` images, init containers, F020 fix, no Keptn labels |
+| `oci://ghcr.io/allensanborn/conference-app` | `v2.1.0` | `sha256:06c52d285613da67107784bfb2a730ab739fece6439b19aa62ebd6702c2c6d70` | public package; Dapr line, from branch `v2.0.0-bitnami-replacements` |
+| `oci://ghcr.io/allensanborn/conference-admin` | `v1.2.0` | `sha256:db1d09a5c861284e0830dfb7399799742141c78f625ef0311427c3d2d0308a0b` | private until flipped; Admin UI on Crossplane v2 |
+
+Each chart passed an install from its packaged `.tgz` (images pulled with a temporary pull secret) before it was pushed: v1.2.0 e2e PASS with 0 restarts, v2.1.0 e2e PASS with Dapr 1.11.0, and conference-admin was Running with the right namespace settings.
