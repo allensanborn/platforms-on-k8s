@@ -32,6 +32,16 @@ Why: Bitnami stopped publishing versioned images to `docker.io/bitnami` in Augus
 - 18:20 chapter 9 Keptn: `make install` fails on a fresh cluster. Fixed the cert-manager wait and the removed `gcr.io/kubebuilder/kube-rbac-proxy` image; the Jaeger CR is still never reconciled by jaeger-operator 1.45 ([F040](docs/findings/F040-keptn-observability-stack.md)). Chapter not completed.
 - 18:25 `from-source/README.md` and the main-branch chapter-7 README repointed; translated READMEs left as-is ([F041](docs/findings/F041-translated-readmes-stale.md)). All `pek-` clusters deleted.
 
+### Pass 3: self-contained artifacts (user authorized publishing images)
+
+- 18:27 inventory of `salaboy/*` images ([F044](docs/findings/F044-image-inventory.md)); upstream remote present.
+- 18:31-18:38 `hack/publish-ghcr.sh` built and pushed 17 multi-arch image tags to `ghcr.io/allensanborn` ([Published artifacts](#published-artifacts)). ko no longer builds single-file packages, so the chapter-9 functions were repackaged ([F045](docs/findings/F045-ko-single-file-builds.md)). A second run skipped every existing tag.
+- 18:35 Admin UI on Crossplane v2 ([F021](docs/findings/F021-admin-ui-v1-environment.md)); services report a build-time version ([F046](docs/findings/F046-chapter8-demo-versions.md)).
+- 18:40 everything repointed at `ghcr.io/allensanborn`: chart `conference-app` v1.2.0, `conference-admin` v1.2.0, Dapr chart v2.1.0, chapters 2, 4, 5, 6, 8, 9, compose and pipelines. `chapter-6/charts/` removed ([F042](docs/findings/F042-chapter6-packaged-chart-removed.md)). Upstream `v3.0.0` investigated ([F043](docs/findings/F043-upstream-v3-chart.md)).
+- 18:50 admin API create/list/delete on Crossplane v2 PASS (temporary pull secret; images still private).
+- 19:04 chart v1.2.0: clear error for `install.infrastructure=false` without values ([F020](docs/findings/F020-infra-false-needs-values.md)).
+- Waiting: the new GHCR packages are private until the owner flips them; charts v1.2.0/v2.1.0 are pushed only after a test with no credentials.
+
 ## Chapter 2: conference-app Helm chart
 
 | What | Before (Bitnami) | After | Tested |
@@ -132,3 +142,33 @@ Converted to `mode: Pipeline` and provider-upjet-aws v2.8.1 namespaced MRs: `ela
 - Translated READMEs (`-es`, `-ja`, `-zh`, `-pt`, `-fr`) still carry the old commands.
 - `install.infrastructure=false` with no per-service values fails to render (`nil pointer evaluating interface {}.kafka`); so `team-b-dev-env.yaml` (`installInfra: false`) can't work without values. Pre-existing; UNTESTED here.
 - ingress-nginx is installed from `main` of kubernetes/ingress-nginx; the project announced its retirement (UNVERIFIED here). Tekton, Argo CD, Dapr and Knative versions in later chapters were not checked.
+
+## Published artifacts
+
+All images are `linux/amd64` + `linux/arm64`, built with ko (`ko build`, Chainguard static base) and labelled `org.opencontainers.image.source=https://github.com/allensanborn/platforms-on-k8s`. Republish with [`hack/publish-ghcr.sh`](hack/publish-ghcr.sh); it skips any tag that already exists. Package list and visibility: see [F044](docs/findings/F044-image-inventory.md).
+
+| Image | Tag | Index digest | Built from |
+| --- | --- | --- | --- |
+| `ghcr.io/allensanborn/admin-go-4b1308c49d6627e0dc7e3ffd57f155cc` | `v1.2.0` | `sha256:560a2b3dac55075381ecb796f87c67f931a033e99449901ed50fb01f7b0d2479` | this branch, working tree of `f03c06d` |
+| `ghcr.io/allensanborn/agenda-service-0967b907d9920c99918e2b91b91937b3` | `v1.2.0` | `sha256:88f48e0e45cb14c2a0f9483a224ad0a59204a6ed4065b556bfac7045bd213f74` | this branch, working tree of `f03c06d` |
+| `ghcr.io/allensanborn/agenda-service-0967b907d9920c99918e2b91b91937b3` | `v2.1.0` | `sha256:e95f0549e36884525e23c99953092943df2b6863ffc13d1d551e8486477e7162` | branch `v2.0.0-bitnami-replacements` @ `a62e4bd` |
+| `ghcr.io/allensanborn/c4p-service-a3dc0474cbfa348afcdf47a8eee70ba9` | `v1.2.0` | `sha256:e2e3fc95cbe87cb3bfcdcfa2b9f5e6aa116bcc24b64a77b8735af84fef6c359e` | this branch, working tree of `f03c06d` |
+| `ghcr.io/allensanborn/c4p-service-a3dc0474cbfa348afcdf47a8eee70ba9` | `v2.1.0` | `sha256:23c85eaffba0b6c685c0e399d8fb164f05989538ce1cfa8655eb3771ba699180` | branch `v2.0.0-bitnami-replacements` @ `a62e4bd` |
+| `ghcr.io/allensanborn/dora-cdevents-endpoint` | `v1.2.0` | `sha256:3eab84d375afe8ce42f64af4b6d7fe228561c0222cf371eb434905e08e772746` | this branch, working tree of `f03c06d` |
+| `ghcr.io/allensanborn/dora-cloudevents-endpoint` | `v1.2.0` | `sha256:5d1e0841422ad8912781237b698cd68cced4fe6bb4151e56f243d4b945dde14d` | this branch, working tree of `f03c06d` |
+| `ghcr.io/allensanborn/dora-cloudevents-router` | `v1.2.0` | `sha256:6c6bef36c379ef1df0a2d69284d56413e0312268ef92b68ee978bf0e27369be2` | this branch, working tree of `f03c06d` |
+| `ghcr.io/allensanborn/dora-deployment-frequency-endpoint` | `v1.2.0` | `sha256:e6ac52b709e26a772a97e17a64b1461b62e1ae84d0f63e4dedd3e06192039f4f` | this branch, working tree of `f03c06d` |
+| `ghcr.io/allensanborn/dora-deployment-frequency` | `v1.2.0` | `sha256:3a5518f8c61b162ce9ce10fcaed36da28fb232ec465516f9f459371b9053501c` | this branch, working tree of `f03c06d` |
+| `ghcr.io/allensanborn/dora-function-api-server-to-service-deployment` | `v1.2.0` | `sha256:d80385fbedc4b4a954dc992aa4bb1c88031ad3a7f8e13f9a49a4cf8a7d158cdc` | this branch, working tree of `f03c06d` |
+| `ghcr.io/allensanborn/frontend-go-1739aa83b5e69d4ccb8a5615830ae66c` | `v1.2.0` | `sha256:ba63fb78e4c828d7a1b87610deee4eaa6a0c7bf8c8f4e846ce4abb09e070a405` | this branch, working tree of `f03c06d` |
+| `ghcr.io/allensanborn/frontend-go-1739aa83b5e69d4ccb8a5615830ae66c` | `v1.3.0` | `sha256:dfaea37090ff55697dd627cd7aa45040d2d685fbb0a3b885a24d0ef91cac3199` | this branch, working tree of `f03c06d` |
+| `ghcr.io/allensanborn/frontend-go-1739aa83b5e69d4ccb8a5615830ae66c` | `v2.1.0` | `sha256:018646efac46296cc4049682956c45c44725d00469800eefe4a8d61d9f390a75` | branch `v2.0.0-bitnami-replacements` @ `a62e4bd` |
+| `ghcr.io/allensanborn/notifications-service-0e27884e01429ab7e350cb5dff61b525` | `v1.2.0` | `sha256:13542dc1ed5586d768bc477bc3ae658f3663b3a71f607b144f5033527781849e` | this branch, working tree of `f03c06d` |
+| `ghcr.io/allensanborn/notifications-service-0e27884e01429ab7e350cb5dff61b525` | `v1.3.0` | `sha256:afc1c07c3f457c658ee662615c2b1420a9af110ebb91350b23e516a0b95db417` | this branch, working tree of `f03c06d` |
+| `ghcr.io/allensanborn/notifications-service-0e27884e01429ab7e350cb5dff61b525` | `v2.1.0` | `sha256:af901dd2dc9b4c0448e957f04dc9941f19ab89f220e89ed9ee1e2e4ff8230c07` | branch `v2.0.0-bitnami-replacements` @ `a62e4bd` |
+
+Charts:
+
+| Chart | Version | Digest | Status |
+| --- | --- | --- | --- |
+| `oci://ghcr.io/allensanborn/conference-app` | `v1.1.0` | `sha256:a7e7b8e3e07fd9459bc56cc711887945ff2a2ac0d70acf0b2ccdcc39100b4246` | public; Valkey/CNPG/Strimzi, still `salaboy/*:v1.0.0` images |
